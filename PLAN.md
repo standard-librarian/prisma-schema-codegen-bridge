@@ -42,14 +42,17 @@ packages/
   plugin-ts-rest-contract/   [done] IR -> ts-rest contract (Effect Schema wrapped via
                               Schema.standardSchemaV1), one CRUD contract per model
                               marked @@tsRestContract -- pinned to @ts-rest/core@3.53.0-rc.1
-  plugin-betterauth-claims/  [ ] IR -> typed role/claims definitions consumed by both
-                              ZenStack @@allow policies and BetterAuth session config
+  plugin-betterauth-claims/  [done] IR + ModelUtils.getAuthDecl -> BetterAuth
+                              `additionalFields` (literal-array DBFieldType + a
+                              Schema.standardSchemaV1 validator) for every enum field
+                              on the @@auth-resolved model
 examples/
-  pos-inventory-demo/        [done, partial] StaffMember/Order/InventoryItem/OrderLineItem
-                              schema + Role enum, exercising plugin-jazz-schema AND
-                              plugin-ts-rest-contract (Order + InventoryItem marked
-                              @@tsRestContract); still needs plugin-betterauth-claims and
-                              the cross-artifact compile-time check described below
+  pos-inventory-demo/        [done, partial] StaffMember (marked @@auth) /Order/
+                              InventoryItem/OrderLineItem schema + Role enum, exercising
+                              all three plugins plus real @@allow policies
+                              (auth().role == 'MANAGER') via @zenstackhq/plugin-policy;
+                              still missing the cross-artifact compile-time check
+                              described below
 ```
 
 Deliberately **not** a Turborepo monorepo — this is a tooling project in the
@@ -85,16 +88,26 @@ example), not a multi-app product; a plain pnpm workspace is the right size.
   has no Standard Schema support at all and is Zod-only. See
   `packages/plugin-ts-rest-contract/index.ts` and
   `docs/plugin-api-notes.md`.
-- [ ] **M4 — `plugin-betterauth-claims`**: emit a `Role`/claims union type from a
-  schema-level `Role` enum (or custom attribute), consumed both by
-  `@@allow` policy expressions and by a BetterAuth session-claims type —
-  proving one enum drives both authorization systems.
+- [x] **M4 — `plugin-betterauth-claims`**: finds the `@@auth`-resolved model
+  via `ModelUtils.getAuthDecl`, and for each of its enum-typed fields emits
+  a BetterAuth `additionalFields` entry using `DBFieldType`'s
+  `Array<LiteralString>` arm (so the field's TS type is the literal union,
+  not `string`) plus a `validator` built from the same
+  `Schema.standardSchemaV1(...)` bridge M3 uses. Verified at three levels:
+  type-checked in isolation, type-checked wired into a real `betterAuth()`
+  call (confirming `$Infer.Session['user']['role']` comes out as `'CASHIER'
+  | 'MANAGER'`, not widened to `string`), and runtime-executed
+  (`validator.input['~standard'].validate(...)`). The "one enum drives both
+  systems" claim is now concretely demonstrated: `InventoryItem` has real
+  `@@allow` rules referencing `auth().role` against the same `Role` enum.
+  See `packages/plugin-betterauth-claims/index.ts` and
+  `docs/plugin-api-notes.md`.
 - [ ] **M5 — `examples/pos-inventory-demo`** (partially done): schema exists
-  (`StaffMember`, `Order`, `InventoryItem`, `OrderLineItem`, `Role`) and both
-  `plugin-jazz-schema` and `plugin-ts-rest-contract` run against it for real
-  (`Order`/`InventoryItem` marked `@@tsRestContract`) — still missing
-  `plugin-betterauth-claims` and the cross-artifact compile-time assertion
-  that all generated artifacts agree on shape.
+  (`StaffMember` marked `@@auth`, `Order`, `InventoryItem`, `OrderLineItem`,
+  `Role`) and all three plugins run against it for real, plus real
+  `@@allow` policies via `@zenstackhq/plugin-policy` — still missing the
+  cross-artifact compile-time assertion that all generated artifacts agree
+  on shape.
 - [ ] **M6 — CLI + packaging**: `npx schema-codegen-bridge generate` wrapping the
   three plugins; README documents the "why," not just the "how."
 - [ ] **M7 — stretch**: publish to npm; wire `pos-offline-reconciliation`'s
@@ -110,23 +123,33 @@ compile-time check if any of the three fall out of sync.
 
 ## Open questions / risks
 
-Resolved by the M0/M2 spike (see `docs/plugin-api-notes.md` for detail):
+Resolved by the M0-M4 spikes (see `docs/plugin-api-notes.md` for detail):
 - ZenStack's AST exposes exactly the relation/attribute metadata needed —
   `DataFieldType.reference` plus `ModelUtils` helpers — no DMMF, no
   re-parsing raw `.zmodel` text required.
 - Jazz relations are generated as plain getters returning the referenced
   `co.map`/`co.list`, not a `co.ref()` call — there is no `co.ref` in the
   jazz-tools API surface we found; the PLAN originally guessed wrong here.
+- Custom attributes with a `.` in the name (originally-planned
+  `@@generate.contract`) turned out to be a non-issue: went with a plain
+  identifier (`@@tsRestContract`) for M3 and confirmed it resolves cleanly
+  through the real CLI; separately found `@db.Text()` in ZenStack's own
+  stdlib, so dotted names would've worked too.
+- `@ts-rest/core`'s Standard Schema support and BetterAuth's
+  `additionalFields` enum support (`Array<LiteralString>` as a `type`) were
+  both unknowns going into M3/M4 and are now confirmed working, including
+  at runtime — see the M3/M4 sections in `docs/plugin-api-notes.md`.
 
 Still open:
-- Custom attributes with a `.` in the name (originally-planned
-  `@@generate.contract`) are unverified — real examples only show plain
-  identifiers. M3 needs to spike this before assuming it works, and likely
-  rename to something like `@@tsRestContract`.
 - `BigInt`/`Decimal`/`Bytes` scalar fields have no confirmed jazz-tools
   primitive — currently mapped to lossy approximations with inline `TODO`s
   in generated output; needs a real answer before any money field in
   `pos-offline-reconciliation` goes through this generator.
+- The `3.53.0-rc.1` pin on `@ts-rest/core` (M3) is a real, live risk —
+  Standard Schema support isn't in a stable release yet.
+- `plugin-betterauth-claims` only handles a `model`-based `@@auth` target
+  with enum-typed fields — a `type`-based (`TypeDef`) auth target, or a
+  plain scalar claim (e.g. a `String` tenant ID), isn't bridged.
 - This project intentionally does not attempt to generate Jazz *permission
   group* logic from ZenStack `@@allow` policies — the two permission models
   are different enough (row-level SQL predicates vs. CRDT group membership)

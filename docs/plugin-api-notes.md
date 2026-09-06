@@ -151,6 +151,54 @@ along the way found `@db.Text()` in the stdlib, which *does* use a dot in a
 field-level attribute name — so dotted names are apparently fine too, just
 unnecessary here.
 
+## M4 result: BetterAuth claims, verified against both real packages
+
+`plugin-betterauth-claims` finds the model ZenStack resolves as `auth()`'s
+type via `ModelUtils.getAuthDecl(model)`, walks its enum-typed fields, and
+emits a BetterAuth `additionalFields` entry per field, using the exact same
+`Schema.standardSchemaV1(...)` bridge as `plugin-ts-rest-contract` -- one
+validation language (Effect Schema) feeding both the API boundary and the
+auth boundary from the same source schema.
+
+Findings, again from installing real packages and reading their compiled
+types rather than trusting docs prose (installed `better-auth@1.7.3` in a
+scratch dir specifically to check this):
+
+1. **`@@auth` is a *core* ZModel attribute**, unlike `@@allow`/`@@deny`/
+   `check()` which come from the separate `@zenstackhq/plugin-policy`
+   package -- confirmed in `@zenstackhq/language`'s `stdlib.zmodel`
+   (`attribute @@auth()` has no plugin namespace). `ModelUtils.getAuthDecl`
+   implements ZenStack's own resolution order (an `@@auth`-annotated
+   `model`/`type`, else a model literally named `User`), so this plugin
+   doesn't reimplement that fallback logic itself.
+2. **BetterAuth's `additionalFields[key].type` accepts `Array<LiteralString>`**,
+   not just `"string" | "number" | "boolean" | "date" | "json"` -- this is
+   the mechanism that makes an enum field possible at all. Confirmed via
+   `@better-auth/core/db`'s `DBFieldType` declaration.
+3. **`DBFieldAttribute` has a `validator: { input?, output?: StandardSchemaV1 }`
+   slot** -- this is what let the same `Schema.standardSchemaV1(...)` call
+   from M3 get reused here instead of inventing a second validation
+   mechanism.
+4. **Round-trip verified at three levels, not just "it compiles"**:
+   - `examples/pos-inventory-demo`'s `StaffMember` model is now marked
+     `@@auth`, and `zen generate` produces `generated/betterauth-claims.ts`
+     for real.
+   - A real `betterAuth({ user: { additionalFields } })` call using the
+     generated output type-checks (`tsc --strict --skipLibCheck`), **and**
+     BetterAuth's own `$Infer.Session['user']['role']` type comes out as
+     the `Role` union (`'CASHIER' | 'MANAGER'`), not widened to `string` --
+     proof the literal-array trick actually survives BetterAuth's type
+     inference machinery, not just our own generated file in isolation.
+   - The generated `validator.input['~standard'].validate(...)` was
+     executed directly at runtime against valid and invalid input, same as
+     M3's ts-rest contract.
+5. **The "one enum drives both" claim from PLAN.md is now concretely
+   demonstrated, not just asserted**: `InventoryItem` in the example schema
+   has real `@@allow` rules (`auth().role == 'MANAGER'` for
+   create/update/delete) that reference the exact same `Role` enum the
+   generated BetterAuth field is built from -- and the whole schema,
+   policies included, passes through the real `zen generate` CLI.
+
 ## Open items this spike surfaced (update PLAN.md's "Open questions" too)
 
 - `DataFieldType.unsupported` (raw DB-native types) isn't handled by the IR
@@ -171,3 +219,9 @@ unnecessary here.
   which this generator doesn't attempt yet.
 - The `3.53.0-rc.1` pin on `@ts-rest/core` is the single biggest
   ship-blocking risk in this whole plugin — see the M3 section above.
+- `plugin-betterauth-claims` only handles `@@auth` resolving to a `model`
+  (`DataModel`); a `type`-based `@@auth` target (TypeDef, per ZenStack's own
+  docs example) is detected and silently skipped, not supported. Also only
+  handles enum-typed fields on that model — plain scalar claims (e.g. a
+  `String` "tenantId" field) aren't bridged, since there's no enum to derive
+  a literal-array `type` from.

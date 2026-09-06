@@ -6,9 +6,12 @@
     "generate": "zen generate"
   },
   "dependencies": {
+    "@better-auth/core": "^1.7.3",
     "@ts-rest/core": "3.53.0-rc.1",
     "@zenstackhq/orm": "^3.9.3",
+    "@zenstackhq/plugin-policy": "^3.9.3",
     "@zenstackhq/schema": "^3.9.3",
+    "better-auth": "^1.7.3",
     "effect": "^3.22.1",
     "jazz-tools": "^0.20.19"
   },

@@ -13,6 +13,15 @@ plugin tsRestContract {
     output = '../generated/ts-rest-contract.ts'
 }
 
+plugin betterauthClaims {
+    provider = '../../../packages/plugin-betterauth-claims'
+    output = '../generated/betterauth-claims.ts'
+}
+
+plugin policy {
+    provider = '@zenstackhq/plugin-policy'
+}
+
 enum Role {
     CASHIER
     MANAGER
@@ -22,6 +31,8 @@ model StaffMember {
     id   String @id @default(cuid())
     name String
     role Role
+
+    @@auth
 }
 
 model InventoryItem {
@@ -31,6 +42,10 @@ model InventoryItem {
     lineItems      OrderLineItem[]
 
     @@tsRestContract
+
+    // only a manager can change stock counts; any authenticated staff can read
+    @@allow('read', auth() != null)
+    @@allow('create,update,delete', auth().role == 'MANAGER')
 }
 
 model Order {
@@ -40,6 +55,9 @@ model Order {
     lineItems OrderLineItem[]
 
     @@tsRestContract
+
+    // any authenticated staff member can ring up and read orders
+    @@allow('all', auth() != null)
 }
 
 model OrderLineItem {

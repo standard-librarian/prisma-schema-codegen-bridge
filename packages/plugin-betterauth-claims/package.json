@@ -1,0 +1,16 @@
+{
+  "name": "@codegen-bridge/plugin-betterauth-claims",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./index.ts",
+  "dependencies": {
+    "@better-auth/core": "^1.7.3",
+    "@codegen-bridge/generator-core": "workspace:*",
+    "@zenstackhq/sdk": "^3.9.4-beta.1",
+    "effect": "^3.22.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}
