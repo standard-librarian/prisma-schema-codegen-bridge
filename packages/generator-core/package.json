@@ -1,0 +1,14 @@
+{
+  "name": "@codegen-bridge/generator-core",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@zenstackhq/sdk": "^3.9.4-beta.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

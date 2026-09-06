@@ -15,4 +15,16 @@ packages plus one example app. See `PLAN.md` → "Scope" for the breakdown.
 
 ## Status
 
-Planning stage (M0 discovery spike not yet started). Nothing runnable yet.
+M0 (discovery spike) and M2 (`plugin-jazz-schema`) done — see
+[`docs/plugin-api-notes.md`](./docs/plugin-api-notes.md) for the real
+ZenStack v3 plugin API (it differs from PLAN.md's original guess) and
+[`PLAN.md`](./PLAN.md) for the milestone checklist. `examples/pos-inventory-demo`
+runs the real `zen generate` CLI and produces a Jazz CoValue schema that
+type-checks against a real `jazz-tools` install. `plugin-ts-rest-contract`
+and `plugin-betterauth-claims` are not yet built.
+
+```bash
+cd examples/pos-inventory-demo
+npx zen generate                       # regenerates zenstack/* and generated/jazz-schema.ts
+npx tsc --noEmit --strict --skipLibCheck generated/jazz-schema.ts
+```

@@ -1,0 +1,43 @@
+datasource db {
+    provider = 'sqlite'
+    url = 'file:./dev.db'
+}
+
+plugin jazz {
+    provider = '../../../packages/plugin-jazz-schema/index.ts'
+    output = '../generated/jazz-schema.ts'
+}
+
+enum Role {
+    CASHIER
+    MANAGER
+}
+
+model StaffMember {
+    id   String @id @default(cuid())
+    name String
+    role Role
+}
+
+model InventoryItem {
+    id             String          @id @default(cuid())
+    name           String
+    quantityOnHand Int
+    lineItems      OrderLineItem[]
+}
+
+model Order {
+    id        String          @id @default(cuid())
+    status    String
+    createdAt DateTime        @default(now())
+    lineItems OrderLineItem[]
+}
+
+model OrderLineItem {
+    id              String        @id @default(cuid())
+    quantity        Int
+    order           Order         @relation(fields: [orderId], references: [id])
+    orderId         String
+    inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+    inventoryItemId String
+}
