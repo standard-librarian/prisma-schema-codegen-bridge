@@ -1,0 +1,16 @@
+{
+  "name": "@codegen-bridge/plugin-ts-rest-contract",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./index.ts",
+  "dependencies": {
+    "@codegen-bridge/generator-core": "workspace:*",
+    "@ts-rest/core": "3.53.0-rc.1",
+    "@zenstackhq/sdk": "^3.9.4-beta.1",
+    "effect": "^3.22.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

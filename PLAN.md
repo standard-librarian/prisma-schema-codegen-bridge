@@ -39,15 +39,17 @@ packages/
                               relation, or enum)
   plugin-jazz-schema/        [done] IR -> Jazz CoValue definitions (co.map/co.list,
                               getter-form relations, matching field types)
-  plugin-ts-rest-contract/   [ ] IR -> ts-rest contract with Effect Schema validators,
-                              one CRUD/read contract per model marked with a custom attribute
+  plugin-ts-rest-contract/   [done] IR -> ts-rest contract (Effect Schema wrapped via
+                              Schema.standardSchemaV1), one CRUD contract per model
+                              marked @@tsRestContract -- pinned to @ts-rest/core@3.53.0-rc.1
   plugin-betterauth-claims/  [ ] IR -> typed role/claims definitions consumed by both
                               ZenStack @@allow policies and BetterAuth session config
 examples/
   pos-inventory-demo/        [done, partial] StaffMember/Order/InventoryItem/OrderLineItem
-                              schema + Role enum, currently exercising plugin-jazz-schema only;
-                              still needs the other two plugins wired in before the
-                              cross-artifact compile-time check described below can exist
+                              schema + Role enum, exercising plugin-jazz-schema AND
+                              plugin-ts-rest-contract (Order + InventoryItem marked
+                              @@tsRestContract); still needs plugin-betterauth-claims and
+                              the cross-artifact compile-time check described below
 ```
 
 Deliberately **not** a Turborepo monorepo — this is a tooling project in the
@@ -73,19 +75,26 @@ example), not a multi-app product; a plain pnpm workspace is the right size.
   output type-checks (`tsc --strict --skipLibCheck`) against a real
   `jazz-tools@0.20.19` install. See `packages/plugin-jazz-schema/index.ts`
   and `docs/plugin-api-notes.md`.
-- [ ] **M3 — `plugin-ts-rest-contract`**: emit a ts-rest contract per model
-  marked with a custom `@@generate.contract` attribute, with Effect Schema
-  (Standard Schema) validators derived from the same field types — proving
-  ts-rest's Standard Schema support is enough to avoid a second validator
-  library.
+- [x] **M3 — `plugin-ts-rest-contract`**: emits a `c.router({...})` CRUD
+  contract (list/getById/create/update/remove) per `@@tsRestContract`-marked
+  model, with Effect `Schema.Struct` field schemas wrapped in
+  `Schema.standardSchemaV1(...)`. Verified both by type-check and at
+  runtime (`~standard.validate(...)` called directly against real,
+  generated output). **Important caveat**: this only works because
+  `@ts-rest/core` is pinned to `3.53.0-rc.1` — the current stable release
+  has no Standard Schema support at all and is Zod-only. See
+  `packages/plugin-ts-rest-contract/index.ts` and
+  `docs/plugin-api-notes.md`.
 - [ ] **M4 — `plugin-betterauth-claims`**: emit a `Role`/claims union type from a
   schema-level `Role` enum (or custom attribute), consumed both by
   `@@allow` policy expressions and by a BetterAuth session-claims type —
   proving one enum drives both authorization systems.
 - [ ] **M5 — `examples/pos-inventory-demo`** (partially done): schema exists
-  (`StaffMember`, `Order`, `InventoryItem`, `OrderLineItem`, `Role`) and
-  `plugin-jazz-schema` runs against it for real — still missing the other two
-  plugins and the cross-artifact compile-time assertion.
+  (`StaffMember`, `Order`, `InventoryItem`, `OrderLineItem`, `Role`) and both
+  `plugin-jazz-schema` and `plugin-ts-rest-contract` run against it for real
+  (`Order`/`InventoryItem` marked `@@tsRestContract`) — still missing
+  `plugin-betterauth-claims` and the cross-artifact compile-time assertion
+  that all generated artifacts agree on shape.
 - [ ] **M6 — CLI + packaging**: `npx schema-codegen-bridge generate` wrapping the
   three plugins; README documents the "why," not just the "how."
 - [ ] **M7 — stretch**: publish to npm; wire `pos-offline-reconciliation`'s

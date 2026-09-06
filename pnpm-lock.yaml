@@ -14,12 +14,18 @@ importers:
 
   examples/pos-inventory-demo:
     dependencies:
+      '@ts-rest/core':
+        specifier: 3.53.0-rc.1
+        version: 3.53.0-rc.1(@types/node@26.4.1)
       '@zenstackhq/orm':
         specifier: ^3.9.3
         version: 3.9.3(zod@4.5.4)
       '@zenstackhq/schema':
         specifier: ^3.9.3
         version: 3.9.3
+      effect:
+        specifier: ^3.22.1
+        version: 3.22.1
       jazz-tools:
         specifier: ^0.20.19
         version: 0.20.19(csstype@3.2.3)(react-native@0.87.1(@babel/core@7.29.7)(react@19.2.8))(react@19.2.8)
@@ -52,6 +58,25 @@ importers:
       '@zenstackhq/sdk':
         specifier: ^3.9.4-beta.1
         version: 3.9.4-beta.1
+    devDependencies:
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
+  packages/plugin-ts-rest-contract:
+    dependencies:
+      '@codegen-bridge/generator-core':
+        specifier: workspace:*
+        version: link:../generator-core
+      '@ts-rest/core':
+        specifier: 3.53.0-rc.1
+        version: 3.53.0-rc.1(@types/node@26.4.1)
+      '@zenstackhq/sdk':
+        specifier: ^3.9.4-beta.1
+        version: 3.9.4-beta.1
+      effect:
+        specifier: ^3.22.1
+        version: 3.22.1
     devDependencies:
       typescript:
         specifier: ^5.7.0
@@ -292,6 +317,14 @@ packages:
 
   '@tiptap/pm@3.31.3':
     resolution: {integrity: sha512-sZime0SWsz/k62W2WvHx5Ig7G2h7kVhrrmnqy+wEgIHfDwEfOlelRjaWCiBCFlF7dxGUntJusCh9FxlLhni0Ag==}
+
+  '@ts-rest/core@3.53.0-rc.1':
+    resolution: {integrity: sha512-hDMXqKHSys6w+kXFW1Q6EvN8QgRvtXKXJ2TpYByKI4TquaPjiTOv99aLD26X4LNRzdna8Ci1PVyzr0jYZv0oNQ==}
+    peerDependencies:
+      '@types/node': ^18.18.7 || >=20.8.4
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
 
   '@types/istanbul-lib-coverage@2.0.6':
     resolution: {integrity: sha512-2QF/t/auWm0lsy8XtKVPG19v3sSOQlJe/YHZgfjb/KBBHOGSV+J2q/S671rcq9uTBrLAXmZpqJiaQbMT+zNU1w==}
@@ -760,6 +793,9 @@ packages:
 
   effect@3.21.0:
     resolution: {integrity: sha512-PPN80qRokCd1f015IANNhrwOnLO7GrrMQfk4/lnZRE/8j7UPWrNNjPV0uBrZutI/nHzernbW+J0hdqQysHiSnQ==}
+
+  effect@3.22.1:
+    resolution: {integrity: sha512-TNoXushmPOBAjJlthF5d2QwnX2xBPEtcNJr5XKNKbRLbDvBcOYkXlYDfvGfSA0zriwLFuCll5MDtNMAdZL17PQ==}
 
   electron-to-chromium@1.5.422:
     resolution: {integrity: sha512-UvA/32XqrLDdZSn7Jllo1AYNcWji/G0d5M0GTViE7KoGBiMunw3a34Sb2KO4ZZyrSEhqsxFoVhWWJshdyfKqJA==}
@@ -2117,6 +2153,10 @@ snapshots:
       prosemirror-transform: 1.12.1
       prosemirror-view: 1.42.3
 
+  '@ts-rest/core@3.53.0-rc.1(@types/node@26.4.1)':
+    optionalDependencies:
+      '@types/node': 26.4.1
+
   '@types/istanbul-lib-coverage@2.0.6': {}
 
   '@types/istanbul-lib-report@3.0.3':
@@ -2614,6 +2654,11 @@ snapshots:
   ee-first@1.1.1: {}
 
   effect@3.21.0:
+    dependencies:
+      '@standard-schema/spec': 1.1.0
+      fast-check: 3.23.2
+
+  effect@3.22.1:
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 3.23.2

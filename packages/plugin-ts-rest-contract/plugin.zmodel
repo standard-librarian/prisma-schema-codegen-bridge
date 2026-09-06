@@ -1,0 +1,7 @@
+/**
+ * Marks a model for CRUD contract generation by plugin-ts-rest-contract.
+ * Model-level (double `@@`), matching the declaration style used by
+ * ZenStack's own built-in model attributes (@@id, @@unique, @@map, ...) --
+ * confirmed against @zenstackhq/language's stdlib.zmodel, not guessed.
+ */
+attribute @@tsRestContract() @@@once

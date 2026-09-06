@@ -4,8 +4,13 @@ datasource db {
 }
 
 plugin jazz {
-    provider = '../../../packages/plugin-jazz-schema/index.ts'
+    provider = '../../../packages/plugin-jazz-schema'
     output = '../generated/jazz-schema.ts'
+}
+
+plugin tsRestContract {
+    provider = '../../../packages/plugin-ts-rest-contract'
+    output = '../generated/ts-rest-contract.ts'
 }
 
 enum Role {
@@ -24,6 +29,8 @@ model InventoryItem {
     name           String
     quantityOnHand Int
     lineItems      OrderLineItem[]
+
+    @@tsRestContract
 }
 
 model Order {
@@ -31,6 +38,8 @@ model Order {
     status    String
     createdAt DateTime        @default(now())
     lineItems OrderLineItem[]
+
+    @@tsRestContract
 }
 
 model OrderLineItem {

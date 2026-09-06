@@ -114,6 +114,43 @@ mutate the AST from the CLI plugin.
    issues in `CoMapSchema`/`AccountSchema` — not something our generated
    code triggers.)
 
+## M3 result: ts-rest + Effect Schema, verified at runtime too
+
+`plugin-ts-rest-contract` emits a `c.router({...})` contract per
+`@@tsRestContract`-marked model, with Effect `Schema.Struct`/`Schema.Literal`/
+`Schema.Array` field schemas wrapped in `Schema.standardSchemaV1(...)` for
+every contract position (`body`, `pathParams`, `responses`).
+
+Two things worth calling out, both confirmed by installing real packages and
+reading their compiled types rather than trusting docs prose:
+
+1. **`@ts-rest/core`'s stable release (3.52.1) does not support Standard
+   Schema at all** — its `ContractAnyType` is typed as `z.ZodSchema |
+   ContractPlainType<unknown> | ContractNullType | null`, Zod-only. Standard
+   Schema support (`StandardSchemaV1<any>` added to `ContractAnyType`) only
+   exists in **`3.53.0-rc.1`**, which this package pins deliberately. That's
+   a real, live risk — not a hedge — and needs revisiting when 3.53
+   stabilizes (or if it doesn't, this whole approach needs Zod instead of
+   Effect Schema for the ts-rest boundary specifically).
+2. **Effect's `Schema` values aren't Standard-Schema-shaped by default** —
+   you need `Schema.standardSchemaV1(schema)` to get an object with a
+   `~standard` property. Confirmed both by type (`StandardSchemaV1<I, A> &
+   SchemaClass<...>`) and at runtime: generated the contract, imported it
+   with Node's native TS stripping (`node --input-type=module`, no build
+   step), and called `orderContract.create.body['~standard'].validate(...)`
+   directly — it accepted valid input and produced `issues` for invalid
+   input, exactly like a real Standard Schema validator should.
+
+Also resolved: the `@@tsRestContract` marker attribute (declared in
+`packages/plugin-ts-rest-contract/plugin.zmodel` as `attribute
+@@tsRestContract() @@@once`) works exactly like ZenStack's own `@@id`/
+`@@unique` — model-level attributes are declared with a `@@` prefix, no
+special registration beyond the `plugin.zmodel` file. The M0 worry about
+dotted attribute names turned out moot for this case (didn't need one), but
+along the way found `@db.Text()` in the stdlib, which *does* use a dot in a
+field-level attribute name — so dotted names are apparently fine too, just
+unnecessary here.
+
 ## Open items this spike surfaced (update PLAN.md's "Open questions" too)
 
 - `DataFieldType.unsupported` (raw DB-native types) isn't handled by the IR
@@ -123,7 +160,14 @@ mutate the AST from the CLI plugin.
   comments in the generated output) — jazz-tools doesn't appear to have
   dedicated primitives for these; needs a real decision, not a placeholder,
   before this touches money fields in `pos-offline-reconciliation`.
-- Attribute names with a `.` in them (e.g. the originally-planned
-  `@@generate.contract`) are unverified — the only real example we found
-  uses plain identifiers (`@password`). `plugin-ts-rest-contract`'s M3 should
-  spike this specifically before assuming dotted names work.
+- ~~Attribute names with a `.`~~ — resolved in M3, see above: went with a
+  plain identifier (`@@tsRestContract`) and separately found evidence
+  (`@db.Text()`) that dotted names work too, so this was never actually a
+  blocker.
+- Relation fields are entirely excluded from the ts-rest contract (only
+  their plain FK scalar, e.g. `orderId`, is included) — fine for a v0 CRUD
+  contract, but `pos-offline-reconciliation`'s settlement API will likely
+  want at least shallow nested resources (e.g. an order's line items),
+  which this generator doesn't attempt yet.
+- The `3.53.0-rc.1` pin on `@ts-rest/core` is the single biggest
+  ship-blocking risk in this whole plugin — see the M3 section above.

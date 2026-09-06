@@ -6,8 +6,10 @@
     "generate": "zen generate"
   },
   "dependencies": {
+    "@ts-rest/core": "3.53.0-rc.1",
     "@zenstackhq/orm": "^3.9.3",
     "@zenstackhq/schema": "^3.9.3",
+    "effect": "^3.22.1",
     "jazz-tools": "^0.20.19"
   },
   "devDependencies": {

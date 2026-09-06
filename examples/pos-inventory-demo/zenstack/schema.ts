@@ -60,6 +60,9 @@ export class SchemaType implements SchemaDef {
                     relation: { opposite: "inventoryItem" }
                 }
             },
+            attributes: [
+                { name: "@@tsRestContract" }
+            ] as readonly AttributeApplication[],
             idFields: ["id"],
             uniqueFields: {
                 id: { type: "String" }
@@ -92,6 +95,9 @@ export class SchemaType implements SchemaDef {
                     relation: { opposite: "order" }
                 }
             },
+            attributes: [
+                { name: "@@tsRestContract" }
+            ] as readonly AttributeApplication[],
             idFields: ["id"],
             uniqueFields: {
                 id: { type: "String" }
