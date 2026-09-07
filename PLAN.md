@@ -47,12 +47,12 @@ packages/
                               Schema.standardSchemaV1 validator) for every enum field
                               on the @@auth-resolved model
 examples/
-  pos-inventory-demo/        [done, partial] StaffMember (marked @@auth) /Order/
-                              InventoryItem/OrderLineItem schema + Role enum, exercising
-                              all three plugins plus real @@allow policies
-                              (auth().role == 'MANAGER') via @zenstackhq/plugin-policy;
-                              still missing the cross-artifact compile-time check
-                              described below
+  pos-inventory-demo/        [done] StaffMember (marked @@auth) /Order/InventoryItem/
+                              OrderLineItem schema + Role enum, exercising all three
+                              plugins plus real @@allow policies (auth().role ==
+                              'MANAGER') via @zenstackhq/plugin-policy, plus
+                              verify-shape.ts's cross-artifact compile-time + runtime
+                              checks (`npm run verify`)
 ```
 
 Deliberately **not** a Turborepo monorepo — this is a tooling project in the
@@ -102,12 +102,23 @@ example), not a multi-app product; a plain pnpm workspace is the right size.
   `@@allow` rules referencing `auth().role` against the same `Role` enum.
   See `packages/plugin-betterauth-claims/index.ts` and
   `docs/plugin-api-notes.md`.
-- [ ] **M5 — `examples/pos-inventory-demo`** (partially done): schema exists
-  (`StaffMember` marked `@@auth`, `Order`, `InventoryItem`, `OrderLineItem`,
-  `Role`) and all three plugins run against it for real, plus real
-  `@@allow` policies via `@zenstackhq/plugin-policy` — still missing the
-  cross-artifact compile-time assertion that all generated artifacts agree
-  on shape.
+- [x] **M5 — `examples/pos-inventory-demo`**: schema (`StaffMember` marked
+  `@@auth`, `Order`, `InventoryItem`, `OrderLineItem`, `Role`) runs through
+  all three plugins for real, plus real `@@allow` policies via
+  `@zenstackhq/plugin-policy`. `verify-shape.ts` adds the cross-artifact
+  compile-time assertion: (1) the `Role` enum values emitted independently
+  by all three plugins are asserted *type-equal* (not just "compatible"),
+  and (2) the ts-rest contract's field keys are asserted a type-level
+  subset of the Jazz CoValue's own `.shape` keys (using `CoMapSchema`'s
+  public `shape` property and `Schema.Struct`'s public `fields` property —
+  both confirmed by reading the installed packages' `.d.ts` files). Each
+  check also has a runtime twin (`assert.deepStrictEqual`/`.every(...)`) so
+  a `tsc` skip can't hide a real mismatch. **This was verified to actually
+  catch drift, not just pass by construction**: deliberately mutated one
+  generated file's `Role` values and confirmed both the type-check and the
+  runtime check failed with a clear diagnostic, then restored it. Run the
+  whole loop with `npm run verify` in `examples/pos-inventory-demo`
+  (regenerates, type-checks, then runs the assertions).
 - [ ] **M6 — CLI + packaging**: `npx schema-codegen-bridge generate` wrapping the
   three plugins; README documents the "why," not just the "how."
 - [ ] **M7 — stretch**: publish to npm; wire `pos-offline-reconciliation`'s
@@ -119,7 +130,10 @@ example), not a multi-app product; a plain pnpm workspace is the right size.
 Editing one field in `examples/pos-inventory-demo`'s `.zmodel` — say, adding
 a field to `Order` — and running one generate command updates the Jazz
 schema, the ts-rest contract, and the claims types together, with a failing
-compile-time check if any of the three fall out of sync.
+compile-time check if any of the three fall out of sync. **Met as of M5**:
+`npm run verify` in `examples/pos-inventory-demo` does exactly this, and it
+was confirmed to actually fail (not just theoretically would) when one
+generated artifact was deliberately made to disagree with the others.
 
 ## Open questions / risks
 

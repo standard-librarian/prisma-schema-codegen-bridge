@@ -15,29 +15,32 @@ packages plus one example app. See `PLAN.md` → "Scope" for the breakdown.
 
 ## Status
 
-M0 (discovery spike) through M4 are done — all three plugins
-(`plugin-jazz-schema`, `plugin-ts-rest-contract`, `plugin-betterauth-claims`)
-are implemented and wired into `examples/pos-inventory-demo`. See
-[`docs/plugin-api-notes.md`](./docs/plugin-api-notes.md) for the real
-ZenStack v3 (and BetterAuth, and ts-rest) APIs this relies on — several
-differ from PLAN.md's original guesses — and [`PLAN.md`](./PLAN.md) for the
-milestone checklist. `examples/pos-inventory-demo` runs the real `zen
-generate` CLI and produces a Jazz CoValue schema, a ts-rest contract, and a
-BetterAuth `additionalFields` config — all Effect-Schema-validated via the
-same `Schema.standardSchemaV1(...)` bridge — that type-check against real
+M0 through M5 are done — all three plugins (`plugin-jazz-schema`,
+`plugin-ts-rest-contract`, `plugin-betterauth-claims`) are implemented and
+wired into `examples/pos-inventory-demo`, plus a cross-artifact check
+(`verify-shape.ts`) that the three generated outputs actually still agree
+with each other. See [`docs/plugin-api-notes.md`](./docs/plugin-api-notes.md)
+for the real ZenStack v3 (and BetterAuth, and ts-rest) APIs this relies on —
+several differ from PLAN.md's original guesses — and
+[`PLAN.md`](./PLAN.md) for the milestone checklist.
+
+`examples/pos-inventory-demo` runs the real `zen generate` CLI and produces
+a Jazz CoValue schema, a ts-rest contract, and a BetterAuth
+`additionalFields` config — all Effect-Schema-validated via the same
+`Schema.standardSchemaV1(...)` bridge — that type-check against real
 `jazz-tools`/`effect`/`@ts-rest/core`/`@better-auth/core` installs. The
 ts-rest contract and the BetterAuth claims validator were both also
 exercised at runtime (`~standard.validate(...)`), not just type-checked, and
 the BetterAuth wiring was checked against a real `betterAuth()` call to
 confirm `$Infer.Session['user']['role']` comes out as the literal union, not
-`string`. **Caveat carried over from M3**: the ts-rest plugin only works
-against `@ts-rest/core@3.53.0-rc.1` — the current stable release has no
-Standard Schema support.
+`string`. `verify-shape.ts` was itself confirmed to have real teeth: one
+generated file's `Role` values were deliberately broken and both its
+compile-time and runtime checks caught it, with a clear diagnostic, before
+being restored. **Caveat carried over from M3**: the ts-rest plugin only
+works against `@ts-rest/core@3.53.0-rc.1` — the current stable release has
+no Standard Schema support.
 
 ```bash
 cd examples/pos-inventory-demo
-npx zen generate                       # regenerates zenstack/*, generated/jazz-schema.ts, generated/ts-rest-contract.ts, generated/betterauth-claims.ts
-npx tsc --noEmit --strict --skipLibCheck generated/jazz-schema.ts
-npx tsc --noEmit --strict --skipLibCheck generated/ts-rest-contract.ts
-npx tsc --noEmit --strict --skipLibCheck generated/betterauth-claims.ts
+npm run verify   # regenerate -> typecheck (tsc -p .) -> cross-artifact assertions
 ```

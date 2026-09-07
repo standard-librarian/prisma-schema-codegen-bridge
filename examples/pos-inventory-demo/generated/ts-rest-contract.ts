@@ -6,7 +6,7 @@ const c = initContract();
 
 export const RoleValues = ['CASHIER', 'MANAGER'] as const;
 
-const InventoryItemSchema = Schema.Struct({
+export const InventoryItemSchema = Schema.Struct({
   id: Schema.String,
   name: Schema.String,
   quantityOnHand: Schema.Number,
@@ -51,7 +51,7 @@ export const inventoryItemContract = c.router({
   },
 });
 
-const OrderSchema = Schema.Struct({
+export const OrderSchema = Schema.Struct({
   id: Schema.String,
   status: Schema.String,
   createdAt: Schema.DateFromString,

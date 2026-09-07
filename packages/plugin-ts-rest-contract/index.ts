@@ -80,7 +80,10 @@ function buildModelContract(
   const resourcePath = `/${name.charAt(0).toLowerCase()}${name.slice(1)}s`;
 
   const lines: string[] = [];
-  lines.push(`const ${recordSchemaName} = Schema.Struct({`);
+  // Exported (not just used internally) so consumers -- including
+  // examples/pos-inventory-demo's cross-artifact shape check, PLAN.md M5 --
+  // can introspect `.fields` without re-deriving the struct shape themselves.
+  lines.push(`export const ${recordSchemaName} = Schema.Struct({`);
   lines.push(...structFieldLines(fieldsExcludingRelations, enumValueConsts));
   lines.push('});');
   lines.push('');

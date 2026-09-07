@@ -199,6 +199,47 @@ scratch dir specifically to check this):
    generated BetterAuth field is built from -- and the whole schema,
    policies included, passes through the real `zen generate` CLI.
 
+## M5 result: a cross-artifact check that actually catches drift
+
+Everything through M4 individually verified one generated artifact against
+its real consumer package. M5 (`examples/pos-inventory-demo/verify-shape.ts`)
+checks the three generated artifacts *against each other*, since "all three
+are individually correct" doesn't imply "all three still agree" -- a stale
+regen of just one of them would be invisible otherwise.
+
+Two things made this straightforward once found:
+
+- Jazz's `CoMapSchema` has a public `shape: Shape` instance property --
+  confirmed in the installed `jazz-tools` `.d.ts` (`CoMapSchema.d.ts`). So
+  `InventoryItem.shape` gives back the exact object passed to `co.map(...)`,
+  both as a runtime value (`Object.keys(...)`) and a type (`keyof typeof
+  InventoryItem.shape`).
+- Effect's `Schema.Struct` similarly has a public `readonly fields:
+  Readonly<Fields>` -- confirmed in `effect`'s `Schema.d.ts`. Combined with
+  exporting the previously-internal `${Model}Schema` consts from
+  `plugin-ts-rest-contract` (a small, backwards-compatible change), this
+  gave a real, introspectable field set to compare against Jazz's `.shape`.
+
+The check itself is two independent assertions, each with a compile-time
+form (a `KeysSubsetOf`/`Equal` type-level check, in the tsd/expect-type
+style, that fails to compile if violated) and a runtime form
+(`assert.deepStrictEqual` / `.every(...)`):
+
+1. The `Role` enum values emitted independently by `plugin-jazz-schema`,
+   `plugin-ts-rest-contract`, and `plugin-betterauth-claims` are asserted
+   exactly equal.
+2. `InventoryItem`/`Order`'s ts-rest contract field keys are asserted a
+   subset of the Jazz CoValue's `.shape` keys (a subset, not exact equality,
+   because ts-rest deliberately excludes relation fields that the Jazz
+   schema legitimately includes -- see M3's documented scope).
+
+**This was verified to have real teeth, not just verified to pass**: one
+generated file's `Role` values were deliberately mutated
+(`'MANAGER'` -> `'OWNER'`) and both the `tsc` run and `node verify-shape.ts`
+failed with a specific, correct diagnostic before the file was restored.
+`npm run verify` in the example runs the whole loop (regenerate, type-check,
+assert) in one command.
+
 ## Open items this spike surfaced (update PLAN.md's "Open questions" too)
 
 - `DataFieldType.unsupported` (raw DB-native types) isn't handled by the IR

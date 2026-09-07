@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "zen generate"
+    "generate": "zen generate",
+    "typecheck": "tsc -p .",
+    "verify": "npm run generate && npm run typecheck && node verify-shape.ts"
   },
   "dependencies": {
     "@better-auth/core": "^1.7.3",
@@ -16,6 +18,7 @@
     "jazz-tools": "^0.20.19"
   },
   "devDependencies": {
+    "@types/node": "^26.4.1",
     "@zenstackhq/cli": "^3.9.3",
     "@zenstackhq/sdk": "^3.9.4-beta.1",
     "typescript": "^5.7.0"
