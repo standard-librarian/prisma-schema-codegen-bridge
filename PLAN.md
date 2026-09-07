@@ -138,9 +138,26 @@ example), not a multi-app product; a plain pnpm workspace is the right size.
   deliberately incomplete schema copy to confirm the missing-plugin error
   path fires correctly. See `packages/cli/bin.ts` and
   `docs/plugin-api-notes.md`.
-- [ ] **M7 — stretch**: publish to npm; wire `pos-offline-reconciliation`'s
-  `packages/db` and `packages/jazz-schema` to actually consume this tool,
-  closing the loop described in that repo's plan.
+- [ ] **M7 — stretch** (both halves substantially done, real `npm publish`
+  itself intentionally not run): every publishable package (`generator-core`,
+  the three plugins, `cli`) has real metadata and passes `npm publish
+  --dry-run`, verified in CI (Node 22 + 24) on every push; a v0.1.0 tag +
+  GitHub Release exist. Actual `npm publish` wasn't run because this
+  environment has no npm credentials (`npm whoami` -> `ENEEDAUTH`) — see
+  README "Publishing" for the exact commands to finish it. The
+  `pos-offline-reconciliation` wiring is done for real: its
+  `packages/db/zenstack/schema.zmodel` runs through all three plugins,
+  producing `packages/jazz-schema` and `packages/contracts`. Since this repo
+  isn't on npm yet, that wiring uses **vendored tarballs**
+  (`pnpm pack` + a `pnpm.overrides` entry for the internal
+  `@codegen-bridge/generator-core` dependency) rather than a plain `file:`
+  dependency on source — pointing `file:` straight at a plugin's source
+  directory fails with `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND`, because
+  `workspace:*` specifiers (correctly used internally in this repo) aren't
+  resolvable from outside this workspace; `pnpm pack`/`publish` rewrite
+  those to real semver ranges, which is exactly the problem `workspace:`
+  protocol is meant to defer to pack-time. See that repo's `PLAN.md`
+  "Relationship to the codegen bridge" for the full account.
 
 ## Definition of done for the POC
 

@@ -272,6 +272,41 @@ resolution failure or a silently-absent generated file. Also confirmed
 working end-to-end through pnpm's real bin-linking (`pnpm run generate:cli`
 inside `pos-inventory-demo`, not just invoking `bin.ts` by path).
 
+## M7 result: consuming this from a genuinely separate repo/workspace
+
+Wiring `pos-offline-reconciliation` (a completely separate git repo and
+pnpm workspace) up to consume these plugins surfaced a real packaging bug,
+found by trying it rather than by reasoning about it:
+
+Pointing a `file:` dependency straight at a plugin's **source directory**
+(e.g. `file:../../../prisma-schema-codegen-bridge/packages/plugin-jazz-schema`)
+fails immediately with `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND`:
+`"@codegen-bridge/generator-core@workspace:^0.1.0" is in the dependencies
+but no package named "@codegen-bridge/generator-core" is present in the
+workspace`. `workspace:*`-style protocol specifiers (correctly used for the
+internal `generator-core` dependency inside *this* repo's workspace) are
+only meaningful inside the pnpm workspace that declares them -- they are
+not a general-purpose "local package" mechanism.
+
+The fix: `pnpm pack` (run inside this repo, where the workspace context
+exists) rewrites `workspace:^0.1.0` to a real semver range (`^0.1.0`) in
+the packed tarball's `package.json` -- confirmed by extracting a packed
+tarball and reading it directly. That's exactly the problem `workspace:`
+protocol exists to defer to pack/publish time. Consuming the resulting
+`.tgz` files via `file:` (plus a root-level `pnpm.overrides` entry
+redirecting `@codegen-bridge/generator-core` to its own vendored tarball,
+so the now-plain `^0.1.0` request from a nested plugin resolves locally
+instead of hitting the real npm registry) worked cleanly on the first try.
+
+Practical implication: **there is no way to consume an unpublished,
+workspace-internal package from a genuinely separate repo without either
+(a) packing/publishing it first, or (b) merging the two repos into one
+workspace.** (b) was already ruled out deliberately (see both repos'
+`PLAN.md`s for why they're split). This is the concrete reason "publish to
+npm" and "wire in the other repo" are the same milestone, not two unrelated
+stretch goals -- the second literally cannot be done for real without the
+packaging discipline of the first.
+
 ## Open items this spike surfaced (update PLAN.md's "Open questions" too)
 
 - `DataFieldType.unsupported` (raw DB-native types) isn't handled by the IR
