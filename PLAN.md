@@ -130,7 +130,7 @@ example), not a multi-app product; a plain pnpm workspace is the right size.
   all three blocks are present with a specific actionable error + copy-paste
   snippet if not, and forwards to `zen generate`. Also switched
   `examples/pos-inventory-demo` from relative-path `provider`s to real
-  npm-package-name ones (`@codegen-bridge/plugin-jazz-schema`, etc., as
+  npm-package-name ones (`@mdht/plugin-jazz-schema`, etc., as
   actual `workspace:*` dependencies) -- confirming a resolution path that
   was documented but never actually exercised before this milestone.
   Verified via `pnpm run generate:cli` inside the example (real bin-linking,
@@ -138,26 +138,29 @@ example), not a multi-app product; a plain pnpm workspace is the right size.
   deliberately incomplete schema copy to confirm the missing-plugin error
   path fires correctly. See `packages/cli/bin.ts` and
   `docs/plugin-api-notes.md`.
-- [ ] **M7 — stretch** (both halves substantially done, real `npm publish`
-  itself intentionally not run): every publishable package (`generator-core`,
-  the three plugins, `cli`) has real metadata and passes `npm publish
-  --dry-run`, verified in CI (Node 22 + 24) on every push; a v0.1.0 tag +
-  GitHub Release exist. Actual `npm publish` wasn't run because this
-  environment has no npm credentials (`npm whoami` -> `ENEEDAUTH`) — see
-  README "Publishing" for the exact commands to finish it. The
-  `pos-offline-reconciliation` wiring is done for real: its
-  `packages/db/zenstack/schema.zmodel` runs through all three plugins,
-  producing `packages/jazz-schema` and `packages/contracts`. Since this repo
-  isn't on npm yet, that wiring uses **vendored tarballs**
-  (`pnpm pack` + a `pnpm.overrides` entry for the internal
-  `@codegen-bridge/generator-core` dependency) rather than a plain `file:`
-  dependency on source — pointing `file:` straight at a plugin's source
-  directory fails with `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND`, because
-  `workspace:*` specifiers (correctly used internally in this repo) aren't
-  resolvable from outside this workspace; `pnpm pack`/`publish` rewrite
-  those to real semver ranges, which is exactly the problem `workspace:`
-  protocol is meant to defer to pack-time. See that repo's `PLAN.md`
-  "Relationship to the codegen bridge" for the full account.
+- [x] **M7 — stretch**: all five packages are published for real —
+  [`@mdht/generator-core`](https://www.npmjs.com/package/@mdht/generator-core),
+  [`@mdht/plugin-jazz-schema`](https://www.npmjs.com/package/@mdht/plugin-jazz-schema),
+  [`@mdht/plugin-ts-rest-contract`](https://www.npmjs.com/package/@mdht/plugin-ts-rest-contract),
+  [`@mdht/plugin-betterauth-claims`](https://www.npmjs.com/package/@mdht/plugin-betterauth-claims),
+  [`schema-codegen-bridge`](https://www.npmjs.com/package/schema-codegen-bridge)
+  (`0.1.1`) — not just dry-run-verified. Publishing surfaced a real,
+  serious bug the dry-run couldn't catch: `schema-codegen-bridge`'s
+  `bin.ts` shipped as raw TypeScript like every other package here, but
+  Node's own module loader (unlike ZenStack's `jiti`-based plugin loader)
+  **refuses to type-strip anything under `node_modules`**, no flag
+  overrides it — a real `npm install` + `npx` of `0.1.0` crashed with
+  `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`. Fixed with a real build
+  step (`tsc` -> `dist/bin.js`) in `0.1.1`, verified with a fresh
+  `npm install` + `npx schema-codegen-bridge generate` in a directory with
+  nothing but the published registry packages — no workspace, no
+  vendoring. See `docs/plugin-api-notes.md` for the full account, including
+  a red herring along the way (a scoped package looked 404 right after
+  publishing; it was ~60-90s of registry propagation lag specific to
+  provisioning a brand-new scope, not a failed publish).
+  `pos-offline-reconciliation`'s wiring now consumes these real published
+  versions instead of the vendored tarballs it used during development —
+  see that repo's `PLAN.md`.
 
 ## Definition of done for the POC
 

@@ -26,19 +26,19 @@ interface RequiredPlugin {
 
 const REQUIRED_PLUGINS: RequiredPlugin[] = [
   {
-    packageName: '@codegen-bridge/plugin-jazz-schema',
+    packageName: '@mdht/plugin-jazz-schema',
     purpose: 'Jazz CoValue schema',
-    snippet: `plugin jazz {\n    provider = '@codegen-bridge/plugin-jazz-schema'\n    output = '../generated/jazz-schema.ts'\n}`,
+    snippet: `plugin jazz {\n    provider = '@mdht/plugin-jazz-schema'\n    output = '../generated/jazz-schema.ts'\n}`,
   },
   {
-    packageName: '@codegen-bridge/plugin-ts-rest-contract',
+    packageName: '@mdht/plugin-ts-rest-contract',
     purpose: 'ts-rest contract (models marked @@tsRestContract)',
-    snippet: `plugin tsRestContract {\n    provider = '@codegen-bridge/plugin-ts-rest-contract'\n    output = '../generated/ts-rest-contract.ts'\n}`,
+    snippet: `plugin tsRestContract {\n    provider = '@mdht/plugin-ts-rest-contract'\n    output = '../generated/ts-rest-contract.ts'\n}`,
   },
   {
-    packageName: '@codegen-bridge/plugin-betterauth-claims',
+    packageName: '@mdht/plugin-betterauth-claims',
     purpose: "BetterAuth additionalFields (the @@auth model's enum fields)",
-    snippet: `plugin betterauthClaims {\n    provider = '@codegen-bridge/plugin-betterauth-claims'\n    output = '../generated/betterauth-claims.ts'\n}`,
+    snippet: `plugin betterauthClaims {\n    provider = '@mdht/plugin-betterauth-claims'\n    output = '../generated/betterauth-claims.ts'\n}`,
   },
 ];
 

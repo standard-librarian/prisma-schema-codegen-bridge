@@ -17,13 +17,13 @@ importers:
       '@better-auth/core':
         specifier: ^1.7.3
         version: 1.7.3(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.5.4))(jose@6.2.12)(kysely@0.29.5)(nanostores@1.5.3)
-      '@codegen-bridge/plugin-betterauth-claims':
+      '@mdht/plugin-betterauth-claims':
         specifier: workspace:*
         version: link:../../packages/plugin-betterauth-claims
-      '@codegen-bridge/plugin-jazz-schema':
+      '@mdht/plugin-jazz-schema':
         specifier: workspace:*
         version: link:../../packages/plugin-jazz-schema
-      '@codegen-bridge/plugin-ts-rest-contract':
+      '@mdht/plugin-ts-rest-contract':
         specifier: workspace:*
         version: link:../../packages/plugin-ts-rest-contract
       '@ts-rest/core':
@@ -70,6 +70,9 @@ importers:
         specifier: ^3.9.3
         version: 3.9.3(kysely@0.29.5)(typescript@5.9.3)
     devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.1
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -89,7 +92,7 @@ importers:
       '@better-auth/core':
         specifier: ^1.7.0
         version: 1.7.3(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.1)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.5.4))(jose@6.2.12)(kysely@0.29.5)(nanostores@1.5.3)
-      '@codegen-bridge/generator-core':
+      '@mdht/generator-core':
         specifier: workspace:^0.1.0
         version: link:../generator-core
       '@zenstackhq/sdk':
@@ -105,7 +108,7 @@ importers:
 
   packages/plugin-jazz-schema:
     dependencies:
-      '@codegen-bridge/generator-core':
+      '@mdht/generator-core':
         specifier: workspace:^0.1.0
         version: link:../generator-core
       '@zenstackhq/sdk':
@@ -121,7 +124,7 @@ importers:
 
   packages/plugin-ts-rest-contract:
     dependencies:
-      '@codegen-bridge/generator-core':
+      '@mdht/generator-core':
         specifier: workspace:^0.1.0
         version: link:../generator-core
       '@ts-rest/core':
@@ -484,6 +487,9 @@ packages:
 
   '@types/istanbul-reports@3.0.4':
     resolution: {integrity: sha512-pk2B1NWalF9toCRu6gjBzR69syFjP4Od8WRAX+0mmf9lAjCRicLOWc+ZrxZHx/0XRjotgkF9t6iaMJ+aXcOdZQ==}
+
+  '@types/node@22.20.1':
+    resolution: {integrity: sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==}
 
   '@types/node@26.4.1':
     resolution: {integrity: sha512-k97ENvZWtvA6yqz5/FS6a7duDgOPEeOQOc2iKS/nY6mX6qJUKtLnWzQS+Xj6tXweyj6ZcTAK2Qecetnvi9nCLA==}
@@ -1945,6 +1951,9 @@ packages:
     resolution: {integrity: sha512-yu26mwteFYzBAot7KVMqFGCVpsF6g8wXfJzQUHvu1no3+rRRSFcSV2nKeYvNPLD2J4b08jYBDhHUjeH0ygIl9w==}
     hasBin: true
 
+  undici-types@6.21.0:
+    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+
   undici-types@8.3.0:
     resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
@@ -2478,6 +2487,10 @@ snapshots:
   '@types/istanbul-reports@3.0.4':
     dependencies:
       '@types/istanbul-lib-report': 3.0.3
+
+  '@types/node@22.20.1':
+    dependencies:
+      undici-types: 6.21.0
 
   '@types/node@26.4.1':
     dependencies:
@@ -4028,6 +4041,8 @@ snapshots:
   typescript@6.0.3: {}
 
   ulid@3.0.2: {}
+
+  undici-types@6.21.0: {}
 
   undici-types@8.3.0: {}
 

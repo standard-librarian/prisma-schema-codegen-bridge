@@ -1,9 +1,22 @@
 # Changelog
 
 All notable changes to this project are documented here. Versions are
-shared across the workspace's publishable packages (`@codegen-bridge/generator-core`,
-`@codegen-bridge/plugin-jazz-schema`, `@codegen-bridge/plugin-ts-rest-contract`,
-`@codegen-bridge/plugin-betterauth-claims`, `schema-codegen-bridge`).
+shared across the workspace's publishable packages (`@mdht/generator-core`,
+`@mdht/plugin-jazz-schema`, `@mdht/plugin-ts-rest-contract`,
+`@mdht/plugin-betterauth-claims`, `schema-codegen-bridge`). All five are
+published on npm.
+
+## schema-codegen-bridge 0.1.1 - 2026-09-07
+
+Real `npm publish` surfaced a bug `npm publish --dry-run` couldn't catch:
+`bin.ts` shipped as raw TypeScript (fine for the plugins, loaded via
+ZenStack's `jiti`-based loader) but Node's own module loader refuses to
+type-strip anything under `node_modules` -- a real `npm install` + `npx` of
+`0.1.0` crashed with `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`. Fixed
+with a real build step (`tsc` -> `dist/bin.js`, wired to `prepublishOnly`).
+Verified with a fresh `npm install` + `npx schema-codegen-bridge generate`
+against nothing but the published registry packages. See
+`docs/plugin-api-notes.md` for the full account.
 
 ## 0.1.0 - 2026-09-07
 

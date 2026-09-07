@@ -1,5 +1,5 @@
 {
-  "name": "@codegen-bridge/plugin-betterauth-claims",
+  "name": "@mdht/plugin-betterauth-claims",
   "version": "0.1.0",
   "description": "ZenStack v3 CLI plugin: generate BetterAuth additionalFields (with a Standard Schema validator) from your ZModel schema's @@auth model.",
   "keywords": ["zenstack", "zmodel", "codegen", "better-auth", "effect", "standard-schema"],
@@ -31,7 +31,7 @@
     }
   },
   "dependencies": {
-    "@codegen-bridge/generator-core": "workspace:^0.1.0",
+    "@mdht/generator-core": "workspace:^0.1.0",
     "@zenstackhq/sdk": "^3.9.4-beta.1"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 {
   "name": "schema-codegen-bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Thin CLI wrapper around ZenStack's `zen generate` for the schema-codegen-bridge plugin suite (Jazz, ts-rest, BetterAuth) -- validates all three plugin blocks are present before generating.",
   "keywords": ["zenstack", "zmodel", "codegen", "cli"],
   "license": "MIT",
@@ -12,16 +12,21 @@
   },
   "type": "module",
   "bin": {
-    "schema-codegen-bridge": "./bin.ts"
+    "schema-codegen-bridge": "./dist/bin.js"
   },
-  "files": ["bin.ts", "README.md"],
+  "files": ["dist", "README.md"],
   "engines": {
     "node": ">=22.6.0"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@zenstackhq/cli": "^3.9.3"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
     "typescript": "^5.7.0"
   }
 }

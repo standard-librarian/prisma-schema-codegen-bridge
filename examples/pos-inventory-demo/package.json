@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@better-auth/core": "^1.7.3",
-    "@codegen-bridge/plugin-betterauth-claims": "workspace:*",
-    "@codegen-bridge/plugin-jazz-schema": "workspace:*",
-    "@codegen-bridge/plugin-ts-rest-contract": "workspace:*",
+    "@mdht/plugin-betterauth-claims": "workspace:*",
+    "@mdht/plugin-jazz-schema": "workspace:*",
+    "@mdht/plugin-ts-rest-contract": "workspace:*",
     "@ts-rest/core": "3.53.0-rc.1",
     "@zenstackhq/orm": "^3.9.3",
     "@zenstackhq/plugin-policy": "^3.9.3",

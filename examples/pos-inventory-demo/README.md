@@ -16,7 +16,7 @@ bridges to BetterAuth:
 ```
 
 All three `plugin {...}` blocks in `zenstack/schema.zmodel` reference the
-generator packages by **npm package name** (`@codegen-bridge/plugin-jazz-schema`,
+generator packages by **npm package name** (`@mdht/plugin-jazz-schema`,
 etc.), not relative file path -- this package depends on them for real (via
 `workspace:*`), which is what makes that resolution possible. You can
 generate either via the real `zen` CLI directly (`npm run generate`) or

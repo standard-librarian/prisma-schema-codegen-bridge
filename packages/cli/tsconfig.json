@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2022",
+    "outDir": "./dist",
+    "declaration": false,
+    "skipLibCheck": true
+  },
+  "include": ["bin.ts"]
+}

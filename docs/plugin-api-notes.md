@@ -250,7 +250,7 @@ never actually exercised until M6.
 
 Confirmed by switching all three blocks in
 `examples/pos-inventory-demo/zenstack/schema.zmodel` to package-name
-providers (`'@codegen-bridge/plugin-jazz-schema'`, etc.) and adding the
+providers (`'@mdht/plugin-jazz-schema'`, etc.) and adding the
 three plugin packages as real `dependencies` (via `workspace:*`) of
 `pos-inventory-demo` so Node's normal module resolution can find them --
 `zen generate` ran identically. This matters because it's the difference
@@ -281,8 +281,8 @@ found by trying it rather than by reasoning about it:
 Pointing a `file:` dependency straight at a plugin's **source directory**
 (e.g. `file:../../../prisma-schema-codegen-bridge/packages/plugin-jazz-schema`)
 fails immediately with `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND`:
-`"@codegen-bridge/generator-core@workspace:^0.1.0" is in the dependencies
-but no package named "@codegen-bridge/generator-core" is present in the
+`"@mdht/generator-core@workspace:^0.1.0" is in the dependencies
+but no package named "@mdht/generator-core" is present in the
 workspace`. `workspace:*`-style protocol specifiers (correctly used for the
 internal `generator-core` dependency inside *this* repo's workspace) are
 only meaningful inside the pnpm workspace that declares them -- they are
@@ -294,7 +294,7 @@ the packed tarball's `package.json` -- confirmed by extracting a packed
 tarball and reading it directly. That's exactly the problem `workspace:`
 protocol exists to defer to pack/publish time. Consuming the resulting
 `.tgz` files via `file:` (plus a root-level `pnpm.overrides` entry
-redirecting `@codegen-bridge/generator-core` to its own vendored tarball,
+redirecting `@mdht/generator-core` to its own vendored tarball,
 so the now-plain `^0.1.0` request from a nested plugin resolves locally
 instead of hitting the real npm registry) worked cleanly on the first try.
 
@@ -306,6 +306,55 @@ workspace.** (b) was already ruled out deliberately (see both repos'
 npm" and "wire in the other repo" are the same milestone, not two unrelated
 stretch goals -- the second literally cannot be done for real without the
 packaging discipline of the first.
+
+## M7 continued: the real npm publish, and a genuine bug it surfaced
+
+All five packages are published for real (`@mdht/generator-core`,
+`@mdht/plugin-jazz-schema`, `@mdht/plugin-ts-rest-contract`,
+`@mdht/plugin-betterauth-claims`, `schema-codegen-bridge`) -- not just
+dry-run-verified. Two things worth recording:
+
+**A red herring first**: right after publishing the four `@mdht/*` scoped
+packages, `npm view`/a direct registry GET returned 404 for all of them,
+including with an authenticated token -- looked exactly like the publish
+had silently failed (there's a real, current npm platform change
+restricting "bypass 2FA" tokens for "account changes and direct
+publishing" per an `npm profile get` notice, which was the first, wrong
+hypothesis). It was actually just **registry propagation lag specific to
+creating a brand-new scope for the first time** -- a plain version publish
+to an existing package/scope propagates near-instantly (confirmed with the
+unscoped `schema-codegen-bridge`), but provisioning `@mdht` as a scope for
+the first time took roughly 60-90 seconds to become visible on the read
+path, even though the publish had already succeeded. Waiting and re-checking
+resolved it. Lesson: don't conclude a scoped publish failed from an
+immediate 404 -- confirm with `npm view` again after a real wait, not just
+a few seconds.
+
+**A genuine, serious bug**: `schema-codegen-bridge`'s `bin.ts` shipped as
+raw TypeScript (matching every other package in this project, all loaded
+fine via ZenStack's `jiti`-based plugin loader or pnpm workspace symlinks).
+But a CLI `bin` entry is executed directly by Node's own module loader, and
+**Node hard-refuses to type-strip any file physically located under
+`node_modules`** -- confirmed two ways: a real `npm install` + `npx` of the
+published `0.1.0` failed with `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`,
+and explicitly forcing `node --experimental-strip-types` on the same file
+produces the identical error -- there is no flag that overrides this, it's
+a deliberate, non-negotiable restriction. This had never surfaced in any
+earlier testing because pnpm workspace symlinks resolve to a real path
+*outside* `node_modules`, and the vendored-tarball test in
+`pos-offline-reconciliation` only exercised the three ZenStack *plugins*
+(loaded via `jiti`, which has no such restriction) -- never this package's
+`bin.ts`, which Node loads directly. **Fixed** by giving `packages/cli` an
+actual build step (`tsc` -> `dist/bin.js`, `prepublishOnly` wired to run
+it) and republishing as `0.1.1` -- verified with a real `npm install` +
+`npx schema-codegen-bridge generate` in a completely fresh scratch
+directory (no workspace, no vendoring, nothing but the published
+registry packages) before calling it done.
+
+Practical implication for anyone extending this project: **any file meant
+to be executed directly by Node (a `bin` entry, in particular) needs a real
+build step before publishing; raw `.ts` only works for files loaded through
+a userland transpiler (`jiti`, `tsx`, etc.), not Node's own module loader.**
 
 ## Open items this spike surfaced (update PLAN.md's "Open questions" too)
 

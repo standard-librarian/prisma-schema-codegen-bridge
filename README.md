@@ -18,13 +18,15 @@ hand-maintaining three parallel schemas that quietly fall out of sync.
 
 ## What's in here
 
+All five packages below are published on npm.
+
 | Package | What it generates |
 |---|---|
-| [`@codegen-bridge/generator-core`](./packages/generator-core) | Shared IR over the ZModel AST — every other package builds on this instead of re-walking the AST |
-| [`@codegen-bridge/plugin-jazz-schema`](./packages/plugin-jazz-schema) | A Jazz CoValue schema (`co.map`/`co.list`) |
-| [`@codegen-bridge/plugin-ts-rest-contract`](./packages/plugin-ts-rest-contract) | A ts-rest CRUD contract (Effect Schema via Standard Schema) per model marked `@@tsRestContract` |
-| [`@codegen-bridge/plugin-betterauth-claims`](./packages/plugin-betterauth-claims) | A BetterAuth `additionalFields` config from your `@@auth` model's enum fields |
-| [`schema-codegen-bridge`](./packages/cli) | A CLI wrapper (`schema-codegen-bridge generate`) around `zen generate` with schema validation |
+| [`@mdht/generator-core`](https://www.npmjs.com/package/@mdht/generator-core) ([source](./packages/generator-core)) | Shared IR over the ZModel AST — every other package builds on this instead of re-walking the AST |
+| [`@mdht/plugin-jazz-schema`](https://www.npmjs.com/package/@mdht/plugin-jazz-schema) ([source](./packages/plugin-jazz-schema)) | A Jazz CoValue schema (`co.map`/`co.list`) |
+| [`@mdht/plugin-ts-rest-contract`](https://www.npmjs.com/package/@mdht/plugin-ts-rest-contract) ([source](./packages/plugin-ts-rest-contract)) | A ts-rest CRUD contract (Effect Schema via Standard Schema) per model marked `@@tsRestContract` |
+| [`@mdht/plugin-betterauth-claims`](https://www.npmjs.com/package/@mdht/plugin-betterauth-claims) ([source](./packages/plugin-betterauth-claims)) | A BetterAuth `additionalFields` config from your `@@auth` model's enum fields |
+| [`schema-codegen-bridge`](https://www.npmjs.com/package/schema-codegen-bridge) ([source](./packages/cli)) | A CLI wrapper (`schema-codegen-bridge generate`) around `zen generate` with schema validation |
 
 Plus [`examples/pos-inventory-demo`](./examples/pos-inventory-demo): a real
 schema exercising all three plugins together, with real `@@allow` access
@@ -40,24 +42,30 @@ cd examples/pos-inventory-demo
 npm run verify   # zen generate -> tsc -p . -> cross-artifact assertions
 ```
 
-To use this in your own project, add the plugin packages you need as
-dependencies, declare them in your `.zmodel`, and either run `zen generate`
-directly or through this bridge's CLI (which validates the blocks are
-present first):
+To use this in your own project:
+
+```bash
+npm install --save-dev @zenstackhq/cli schema-codegen-bridge
+npm install @mdht/plugin-jazz-schema @mdht/plugin-ts-rest-contract @mdht/plugin-betterauth-claims
+```
+
+Add the plugin packages you need as dependencies, declare them in your
+`.zmodel`, and either run `zen generate` directly or through this bridge's
+CLI (which validates the blocks are present first):
 
 ```zmodel
 plugin jazz {
-    provider = '@codegen-bridge/plugin-jazz-schema'
+    provider = '@mdht/plugin-jazz-schema'
     output = '../generated/jazz-schema.ts'
 }
 
 plugin tsRestContract {
-    provider = '@codegen-bridge/plugin-ts-rest-contract'
+    provider = '@mdht/plugin-ts-rest-contract'
     output = '../generated/ts-rest-contract.ts'
 }
 
 plugin betterauthClaims {
-    provider = '@codegen-bridge/plugin-betterauth-claims'
+    provider = '@mdht/plugin-betterauth-claims'
     output = '../generated/betterauth-claims.ts'
 }
 ```
@@ -82,7 +90,8 @@ later.
 
 ## Status
 
-All of `PLAN.md`'s core milestones (M0–M6) are done. Every generated
+All of `PLAN.md`'s milestones (M0–M7) are done, including a real `npm
+publish` of all five packages. Every generated
 artifact has been verified against a real installed dependency — not just
 type-checked in isolation, but (where it matters) executed at runtime and,
 for `verify-shape.ts`, deliberately broken once to confirm the check
@@ -99,20 +108,30 @@ actually catches drift. See:
 
 ## Publishing
 
-Packages aren't published to npm yet. Every publishable package
-(`generator-core`, the three plugins, `cli`) has real metadata (`files`,
-`exports`, `license`, `repository`, peer dependencies) and passes
-`npm publish --dry-run` — verified in CI on every push. To actually publish:
+All five packages are published (`@mdht/generator-core`,
+`@mdht/plugin-jazz-schema`, `@mdht/plugin-ts-rest-contract`,
+`@mdht/plugin-betterauth-claims` at `0.1.0`, `schema-codegen-bridge` at
+`0.1.1`), each verified with a genuinely fresh `npm install` in a directory
+with nothing but the published registry packages — no workspace, no local
+source, no vendoring.
+
+Publishing itself surfaced a real bug `npm publish --dry-run` didn't catch:
+`schema-codegen-bridge`'s `bin.ts` shipped as raw TypeScript in `0.1.0`
+(fine for the three plugins, loaded via ZenStack's `jiti`-based loader),
+but Node's own module loader refuses to type-strip anything under
+`node_modules` — a real `npx` of it crashed immediately. Fixed in `0.1.1`
+with a real build step. See `docs/plugin-api-notes.md` for the full
+account, and `CHANGELOG.md` for the version history.
+
+To release a new version of any package:
 
 ```bash
-npm login   # as whichever npm user/org should own the packages
-pnpm run publish:dry-run   # sanity check first
-cd packages/<package> && npm publish --access public   # repeat per package
+pnpm run publish:dry-run   # sanity check first (works without npm auth)
+cd packages/<package> && pnpm publish --access public   # use pnpm publish, not npm publish,
+                                                          # for packages with an internal workspace:* dependency
+                                                          # (it rewrites workspace: to a real semver range;
+                                                          # plain npm publish does not)
 ```
-
-The `@codegen-bridge` npm scope isn't reserved by anyone in particular —
-whoever publishes first should either register that org or rename the
-scope to their own first.
 
 ## License
 

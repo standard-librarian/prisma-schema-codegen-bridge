@@ -4,17 +4,17 @@ datasource db {
 }
 
 plugin jazz {
-    provider = '@codegen-bridge/plugin-jazz-schema'
+    provider = '@mdht/plugin-jazz-schema'
     output = '../generated/jazz-schema.ts'
 }
 
 plugin tsRestContract {
-    provider = '@codegen-bridge/plugin-ts-rest-contract'
+    provider = '@mdht/plugin-ts-rest-contract'
     output = '../generated/ts-rest-contract.ts'
 }
 
 plugin betterauthClaims {
-    provider = '@codegen-bridge/plugin-betterauth-claims'
+    provider = '@mdht/plugin-betterauth-claims'
     output = '../generated/betterauth-claims.ts'
 }
 

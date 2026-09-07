@@ -1,5 +1,5 @@
 {
-  "name": "@codegen-bridge/generator-core",
+  "name": "@mdht/generator-core",
   "version": "0.1.0",
   "description": "Shared IR builder over the ZModel AST, used by schema-codegen-bridge's generator plugins so none of them re-implements AST traversal.",
   "keywords": ["zenstack", "zmodel", "codegen", "ast"],

@@ -1,5 +1,5 @@
 {
-  "name": "@codegen-bridge/plugin-ts-rest-contract",
+  "name": "@mdht/plugin-ts-rest-contract",
   "version": "0.1.0",
   "description": "ZenStack v3 CLI plugin: generate a ts-rest CRUD contract (Effect Schema, via Standard Schema) from your ZModel schema.",
   "keywords": ["zenstack", "zmodel", "codegen", "ts-rest", "effect", "standard-schema"],
@@ -34,7 +34,7 @@
     }
   },
   "dependencies": {
-    "@codegen-bridge/generator-core": "workspace:^0.1.0",
+    "@mdht/generator-core": "workspace:^0.1.0",
     "@zenstackhq/sdk": "^3.9.4-beta.1"
   },
   "devDependencies": {

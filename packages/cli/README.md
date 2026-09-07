@@ -27,3 +27,17 @@ also tested against a deliberately incomplete copy of the schema.
 Depends on `@zenstackhq/cli` directly so that installing just
 `schema-codegen-bridge` is enough to get `zen` too, rather than requiring
 consumers to separately add `@zenstackhq/cli` themselves.
+
+**Unlike every other package here, this one ships a build step.**
+`bin.ts` is compiled to `dist/bin.js` (`npm run build`, wired to
+`prepublishOnly`) rather than published as raw TypeScript. That's not
+stylistic: Node's own module loader refuses to type-strip anything located
+under `node_modules`, with no flag to override it, and a `bin` entry is
+exactly the kind of file Node loads directly rather than through ZenStack's
+`jiti`-based plugin loader (which has no such restriction, which is why
+the three plugin packages are fine shipping raw `.ts`). Published `0.1.0`
+without the build step and it crashed on a real `npx` with
+`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`; `0.1.1` fixed it, verified
+with a fresh `npm install` + `npx schema-codegen-bridge generate` against
+nothing but the published registry packages. See root
+`docs/plugin-api-notes.md` for the full account.

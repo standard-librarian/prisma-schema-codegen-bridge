@@ -1,5 +1,5 @@
 {
-  "name": "@codegen-bridge/plugin-jazz-schema",
+  "name": "@mdht/plugin-jazz-schema",
   "version": "0.1.0",
   "description": "ZenStack v3 CLI plugin: generate a Jazz CoValue schema (co.map/co.list) from your ZModel schema.",
   "keywords": ["zenstack", "zmodel", "codegen", "jazz-tools", "local-first", "crdt"],
@@ -27,7 +27,7 @@
     }
   },
   "dependencies": {
-    "@codegen-bridge/generator-core": "workspace:^0.1.0",
+    "@mdht/generator-core": "workspace:^0.1.0",
     "@zenstackhq/sdk": "^3.9.4-beta.1"
   },
   "devDependencies": {
