@@ -126,7 +126,9 @@ account, and `CHANGELOG.md` for the version history.
 To release a new version of any package:
 
 ```bash
-pnpm run publish:dry-run   # sanity check first (works without npm auth)
+pnpm run pack:dry-run   # sanity check first (works without npm auth; NOT `npm publish --dry-run`,
+                        # which fails once a version is genuinely published -- see CI's packaging job)
+# bump the version in that package's package.json, then:
 cd packages/<package> && pnpm publish --access public   # use pnpm publish, not npm publish,
                                                           # for packages with an internal workspace:* dependency
                                                           # (it rewrites workspace: to a real semver range;

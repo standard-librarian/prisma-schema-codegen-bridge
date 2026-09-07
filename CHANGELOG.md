@@ -13,10 +13,27 @@ Real `npm publish` surfaced a bug `npm publish --dry-run` couldn't catch:
 ZenStack's `jiti`-based loader) but Node's own module loader refuses to
 type-strip anything under `node_modules` -- a real `npm install` + `npx` of
 `0.1.0` crashed with `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`. Fixed
-with a real build step (`tsc` -> `dist/bin.js`, wired to `prepublishOnly`).
-Verified with a fresh `npm install` + `npx schema-codegen-bridge generate`
-against nothing but the published registry packages. See
-`docs/plugin-api-notes.md` for the full account.
+with a real build step (`tsc` -> `dist/bin.js`). Verified with a fresh
+`npm install` + `npx schema-codegen-bridge generate` against nothing but
+the published registry packages. See `docs/plugin-api-notes.md` for the
+full account.
+
+Two follow-on, repo-tooling-only fixes (no new npm version needed -- the
+published `0.1.1` tarball is unaffected by either):
+- The build step was first wired to `prepublishOnly`, which only runs
+  during `npm publish`/`npm pack` -- a genuinely fresh `pnpm install` (what
+  CI, and any new clone, actually does) never built `dist/bin.js` at all,
+  and pnpm silently skipped linking the `schema-codegen-bridge` bin
+  entirely once it found the target file missing. Switched to `prepare`,
+  which also runs on a plain local install. Verified against an actual
+  fresh git clone, not just a wiped working directory.
+- CI's packaging check used `npm publish --dry-run`, which -- now that
+  real versions are genuinely published -- correctly fails with "cannot
+  publish over previously published versions" for any already-shipped
+  version. That's npm behaving correctly, not a bug, but it makes
+  `publish --dry-run` useless as an *ongoing* CI check. Switched to
+  `npm pack --dry-run`, which validates the same packaging concerns
+  without touching the registry's version check.
 
 ## 0.1.0 - 2026-09-07
 

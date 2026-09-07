@@ -54,12 +54,19 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: npm publish --dry-run for every publishable package
+      - name: npm pack --dry-run for every publishable package
+        # Not `npm publish --dry-run`: now that these are genuinely published
+        # (see PLAN.md M7), a dry-run *publish* correctly fails with "cannot
+        # publish over previously published versions" for any already-shipped
+        # version -- that's npm behaving correctly, not a bug, but it makes
+        # `publish --dry-run` useless as an ongoing CI packaging check. `pack
+        # --dry-run` validates the same thing (files/exports/tarball
+        # contents) without hitting the registry's version check at all.
         run: |
           set -e
           for pkg in generator-core plugin-jazz-schema plugin-ts-rest-contract plugin-betterauth-claims cli; do
             echo "::group::$pkg"
-            (cd "packages/$pkg" && npm publish --dry-run)
+            (cd "packages/$pkg" && npm pack --dry-run)
             echo "::endgroup::"
           done
 
