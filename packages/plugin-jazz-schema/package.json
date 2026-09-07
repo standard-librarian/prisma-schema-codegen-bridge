@@ -1,11 +1,33 @@
 {
   "name": "@codegen-bridge/plugin-jazz-schema",
-  "private": true,
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "description": "ZenStack v3 CLI plugin: generate a Jazz CoValue schema (co.map/co.list) from your ZModel schema.",
+  "keywords": ["zenstack", "zmodel", "codegen", "jazz-tools", "local-first", "crdt"],
+  "license": "MIT",
+  "author": "standard-librarian",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/standard-librarian/prisma-schema-codegen-bridge.git",
+    "directory": "packages/plugin-jazz-schema"
+  },
   "type": "module",
   "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": "./index.ts",
+  "files": ["index.ts", "README.md"],
+  "engines": {
+    "node": ">=22.6.0"
+  },
+  "peerDependencies": {
+    "jazz-tools": "^0.20.0"
+  },
+  "peerDependenciesMeta": {
+    "jazz-tools": {
+      "optional": true
+    }
+  },
   "dependencies": {
-    "@codegen-bridge/generator-core": "workspace:*",
+    "@codegen-bridge/generator-core": "workspace:^0.1.0",
     "@zenstackhq/sdk": "^3.9.4-beta.1"
   },
   "devDependencies": {

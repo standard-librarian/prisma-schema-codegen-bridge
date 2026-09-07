@@ -3,8 +3,8 @@
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "build": "pnpm -r run build",
-    "test": "pnpm -r run test"
+    "verify": "pnpm --filter pos-inventory-demo run verify",
+    "publish:dry-run": "for pkg in generator-core plugin-jazz-schema plugin-ts-rest-contract plugin-betterauth-claims cli; do (cd packages/$pkg && npm publish --dry-run); done"
   },
   "devDependencies": {
     "typescript": "^5.7.0"

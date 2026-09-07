@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: generate + typecheck + verify (node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Everything here relies on Node's built-in TypeScript type-stripping
+        # (no build step) -- 22.6.0 is when that landed, 24 is current LTS.
+        node-version: ['22', '24']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Regenerate, type-check, and cross-verify examples/pos-inventory-demo
+        working-directory: examples/pos-inventory-demo
+        run: npm run verify
+
+      - name: Confirm the CLI wrapper produces the same result
+        working-directory: examples/pos-inventory-demo
+        run: npm run generate:cli
+
+  packaging:
+    name: package publish readiness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: npm publish --dry-run for every publishable package
+        run: |
+          set -e
+          for pkg in generator-core plugin-jazz-schema plugin-ts-rest-contract plugin-betterauth-claims cli; do
+            echo "::group::$pkg"
+            (cd "packages/$pkg" && npm publish --dry-run)
+            echo "::endgroup::"
+          done

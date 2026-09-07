@@ -87,16 +87,16 @@ importers:
   packages/plugin-betterauth-claims:
     dependencies:
       '@better-auth/core':
-        specifier: ^1.7.3
+        specifier: ^1.7.0
         version: 1.7.3(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.1)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.5.4))(jose@6.2.12)(kysely@0.29.5)(nanostores@1.5.3)
       '@codegen-bridge/generator-core':
-        specifier: workspace:*
+        specifier: workspace:^0.1.0
         version: link:../generator-core
       '@zenstackhq/sdk':
         specifier: ^3.9.4-beta.1
         version: 3.9.4-beta.1
       effect:
-        specifier: ^3.22.1
+        specifier: ^3.16.0
         version: 3.22.1
     devDependencies:
       typescript:
@@ -106,11 +106,14 @@ importers:
   packages/plugin-jazz-schema:
     dependencies:
       '@codegen-bridge/generator-core':
-        specifier: workspace:*
+        specifier: workspace:^0.1.0
         version: link:../generator-core
       '@zenstackhq/sdk':
         specifier: ^3.9.4-beta.1
         version: 3.9.4-beta.1
+      jazz-tools:
+        specifier: ^0.20.0
+        version: 0.20.19(better-auth@1.7.3(@opentelemetry/api@1.9.1)(prisma@6.19.3(typescript@5.9.3))(react@19.2.8))(csstype@3.2.3)(react-native@0.87.1(@babel/core@7.29.7)(react@19.2.8))(react@19.2.8)
     devDependencies:
       typescript:
         specifier: ^5.7.0
@@ -119,7 +122,7 @@ importers:
   packages/plugin-ts-rest-contract:
     dependencies:
       '@codegen-bridge/generator-core':
-        specifier: workspace:*
+        specifier: workspace:^0.1.0
         version: link:../generator-core
       '@ts-rest/core':
         specifier: 3.53.0-rc.1
@@ -128,7 +131,7 @@ importers:
         specifier: ^3.9.4-beta.1
         version: 3.9.4-beta.1
       effect:
-        specifier: ^3.22.1
+        specifier: ^3.16.0
         version: 3.22.1
     devDependencies:
       typescript:
