@@ -20,7 +20,7 @@
   },
   "scripts": {
     "build": "tsc -p .",
-    "prepublishOnly": "npm run build"
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@zenstackhq/cli": "^3.9.3"
