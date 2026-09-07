@@ -1,0 +1,14 @@
+{
+  "name": "schema-codegen-bridge",
+  "version": "0.0.1",
+  "type": "module",
+  "bin": {
+    "schema-codegen-bridge": "./bin.ts"
+  },
+  "dependencies": {
+    "@zenstackhq/cli": "^3.9.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

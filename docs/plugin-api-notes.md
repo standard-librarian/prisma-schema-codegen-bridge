@@ -240,6 +240,38 @@ failed with a specific, correct diagnostic before the file was restored.
 `npm run verify` in the example runs the whole loop (regenerate, type-check,
 assert) in one command.
 
+## M6 result: npm-package-name provider resolution confirmed, plus a thin CLI
+
+Through M5, every `plugin { provider = ... }` block in the example pointed
+at a plugin by relative file path (`'../../../packages/plugin-jazz-schema'`).
+M0's plugin-dev doc excerpt said `provider` also resolves as a plain npm
+package name ("otherwise, load it as an npm package"), but that path was
+never actually exercised until M6.
+
+Confirmed by switching all three blocks in
+`examples/pos-inventory-demo/zenstack/schema.zmodel` to package-name
+providers (`'@codegen-bridge/plugin-jazz-schema'`, etc.) and adding the
+three plugin packages as real `dependencies` (via `workspace:*`) of
+`pos-inventory-demo` so Node's normal module resolution can find them --
+`zen generate` ran identically. This matters because it's the difference
+between "only works inside this exact monorepo layout" and "works the way
+any real npm-installed plugin would."
+
+`packages/cli` (`schema-codegen-bridge`) wraps `zen generate` rather than
+reimplementing it -- confirmed there's no way around this: the three
+`plugin {...}` blocks have to be declared directly in the consumer's own
+`.zmodel` for ZenStack to register their custom attributes
+(`@@tsRestContract`, and `@@auth` is core but still needs the model
+annotated in-schema), so an external CLI can't inject them invisibly. What
+it adds instead: a single command, and a specific, actionable error if a
+schema is missing one of the three blocks, tested against a deliberately
+incomplete copy of the schema (one plugin block stripped) -- it printed the
+exact missing block's snippet and exited non-zero, instead of the
+consumer discovering the problem later via a cryptic `@@tsRestContract`
+resolution failure or a silently-absent generated file. Also confirmed
+working end-to-end through pnpm's real bin-linking (`pnpm run generate:cli`
+inside `pos-inventory-demo`, not just invoking `bin.ts` by path).
+
 ## Open items this spike surfaced (update PLAN.md's "Open questions" too)
 
 - `DataFieldType.unsupported` (raw DB-native types) isn't handled by the IR

@@ -15,6 +15,16 @@ bridges to BetterAuth:
 @@allow('create,update,delete', auth().role == 'MANAGER')
 ```
 
+All three `plugin {...}` blocks in `zenstack/schema.zmodel` reference the
+generator packages by **npm package name** (`@codegen-bridge/plugin-jazz-schema`,
+etc.), not relative file path -- this package depends on them for real (via
+`workspace:*`), which is what makes that resolution possible. You can
+generate either via the real `zen` CLI directly (`npm run generate`) or
+through this bridge's own wrapper CLI (`npm run generate:cli`, i.e.
+`schema-codegen-bridge generate` — see `../../packages/cli`), which adds a
+specific error if any of the three plugin blocks is missing, instead of a
+confusing failure later.
+
 Run `npm run verify` in this directory to regenerate everything, type-check
 it, and run the cross-artifact shape checks in one go:
 

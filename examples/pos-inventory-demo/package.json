@@ -4,11 +4,15 @@
   "type": "module",
   "scripts": {
     "generate": "zen generate",
+    "generate:cli": "schema-codegen-bridge generate",
     "typecheck": "tsc -p .",
     "verify": "npm run generate && npm run typecheck && node verify-shape.ts"
   },
   "dependencies": {
     "@better-auth/core": "^1.7.3",
+    "@codegen-bridge/plugin-betterauth-claims": "workspace:*",
+    "@codegen-bridge/plugin-jazz-schema": "workspace:*",
+    "@codegen-bridge/plugin-ts-rest-contract": "workspace:*",
     "@ts-rest/core": "3.53.0-rc.1",
     "@zenstackhq/orm": "^3.9.3",
     "@zenstackhq/plugin-policy": "^3.9.3",
@@ -21,6 +25,7 @@
     "@types/node": "^26.4.1",
     "@zenstackhq/cli": "^3.9.3",
     "@zenstackhq/sdk": "^3.9.4-beta.1",
+    "schema-codegen-bridge": "workspace:*",
     "typescript": "^5.7.0"
   }
 }

@@ -11,15 +11,34 @@ questions. This repo is currently in the planning/discovery stage.
 ## Layout
 
 Plain pnpm workspace (not Turborepo — see PLAN.md for why): three generator
-packages plus one example app. See `PLAN.md` → "Scope" for the breakdown.
+packages, a thin CLI wrapper, plus one example app. See `PLAN.md` →
+"Scope" for the breakdown.
+
+## Why a CLI wrapper, not just three plugin blocks
+
+Each of the three generators is a real ZenStack plugin, wired into a
+consumer's schema via a `plugin {...}` block — that part can't be hidden
+behind a CLI, because ZenStack needs those blocks declared directly in the
+`.zmodel` to register the custom attributes they contribute (`@@tsRestContract`,
+and `@@auth`, which is core but still needs the target model annotated
+in-schema). Copy-pasting those three blocks into every consumer project by
+hand is exactly the kind of drift-prone duplication this whole project
+exists to eliminate on the *data model* side — so `schema-codegen-bridge`
+(`packages/cli`) exists to at least make the *generation step* consistent:
+one command, and a specific, actionable error (with a copy-pasteable
+snippet) if a schema is missing one of the three blocks, instead of a
+confusing failure discovered later.
 
 ## Status
 
-M0 through M5 are done — all three plugins (`plugin-jazz-schema`,
+M0 through M6 are done — all three plugins (`plugin-jazz-schema`,
 `plugin-ts-rest-contract`, `plugin-betterauth-claims`) are implemented and
-wired into `examples/pos-inventory-demo`, plus a cross-artifact check
-(`verify-shape.ts`) that the three generated outputs actually still agree
-with each other. See [`docs/plugin-api-notes.md`](./docs/plugin-api-notes.md)
+wired into `examples/pos-inventory-demo` **by npm package name** (real
+`workspace:*` dependencies, not relative file paths), a cross-artifact
+check (`verify-shape.ts`) confirms the three generated outputs actually
+still agree with each other, and `schema-codegen-bridge` (`packages/cli`)
+wraps `zen generate` with schema-path resolution and missing-plugin-block
+validation. See [`docs/plugin-api-notes.md`](./docs/plugin-api-notes.md)
 for the real ZenStack v3 (and BetterAuth, and ts-rest) APIs this relies on —
 several differ from PLAN.md's original guesses — and
 [`PLAN.md`](./PLAN.md) for the milestone checklist.
@@ -42,5 +61,6 @@ no Standard Schema support.
 
 ```bash
 cd examples/pos-inventory-demo
-npm run verify   # regenerate -> typecheck (tsc -p .) -> cross-artifact assertions
+npm run verify        # regenerate (zen generate) -> typecheck (tsc -p .) -> cross-artifact assertions
+npm run generate:cli  # equivalent regenerate step, via schema-codegen-bridge instead of zen directly
 ```

@@ -46,6 +46,10 @@ packages/
                               `additionalFields` (literal-array DBFieldType + a
                               Schema.standardSchemaV1 validator) for every enum field
                               on the @@auth-resolved model
+  cli/                       [done] `schema-codegen-bridge generate` -- thin wrapper
+                              around `zen generate` with actionable errors if a schema
+                              is missing one of the three plugin blocks; published
+                              (in spirit) as package name `schema-codegen-bridge`
 examples/
   pos-inventory-demo/        [done] StaffMember (marked @@auth) /Order/InventoryItem/
                               OrderLineItem schema + Role enum, exercising all three
@@ -119,8 +123,21 @@ example), not a multi-app product; a plain pnpm workspace is the right size.
   runtime check failed with a clear diagnostic, then restored it. Run the
   whole loop with `npm run verify` in `examples/pos-inventory-demo`
   (regenerates, type-checks, then runs the assertions).
-- [ ] **M6 — CLI + packaging**: `npx schema-codegen-bridge generate` wrapping the
-  three plugins; README documents the "why," not just the "how."
+- [x] **M6 — CLI + packaging**: `packages/cli` (`schema-codegen-bridge`)
+  wraps `zen generate` -- it can't replace the three `plugin {...}` blocks
+  in a consumer's `.zmodel` (ZenStack needs them declared in-schema to
+  register custom attributes), but it resolves the schema path, validates
+  all three blocks are present with a specific actionable error + copy-paste
+  snippet if not, and forwards to `zen generate`. Also switched
+  `examples/pos-inventory-demo` from relative-path `provider`s to real
+  npm-package-name ones (`@codegen-bridge/plugin-jazz-schema`, etc., as
+  actual `workspace:*` dependencies) -- confirming a resolution path that
+  was documented but never actually exercised before this milestone.
+  Verified via `pnpm run generate:cli` inside the example (real bin-linking,
+  not just invoking `bin.ts` by path) and by running the CLI against a
+  deliberately incomplete schema copy to confirm the missing-plugin error
+  path fires correctly. See `packages/cli/bin.ts` and
+  `docs/plugin-api-notes.md`.
 - [ ] **M7 — stretch**: publish to npm; wire `pos-offline-reconciliation`'s
   `packages/db` and `packages/jazz-schema` to actually consume this tool,
   closing the loop described in that repo's plan.

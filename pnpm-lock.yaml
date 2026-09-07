@@ -17,6 +17,15 @@ importers:
       '@better-auth/core':
         specifier: ^1.7.3
         version: 1.7.3(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.5.4))(jose@6.2.12)(kysely@0.29.5)(nanostores@1.5.3)
+      '@codegen-bridge/plugin-betterauth-claims':
+        specifier: workspace:*
+        version: link:../../packages/plugin-betterauth-claims
+      '@codegen-bridge/plugin-jazz-schema':
+        specifier: workspace:*
+        version: link:../../packages/plugin-jazz-schema
+      '@codegen-bridge/plugin-ts-rest-contract':
+        specifier: workspace:*
+        version: link:../../packages/plugin-ts-rest-contract
       '@ts-rest/core':
         specifier: 3.53.0-rc.1
         version: 3.53.0-rc.1(@types/node@26.4.1)
@@ -48,6 +57,19 @@ importers:
       '@zenstackhq/sdk':
         specifier: ^3.9.4-beta.1
         version: 3.9.4-beta.1
+      schema-codegen-bridge:
+        specifier: workspace:*
+        version: link:../../packages/cli
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
+  packages/cli:
+    dependencies:
+      '@zenstackhq/cli':
+        specifier: ^3.9.3
+        version: 3.9.3(kysely@0.29.5)(typescript@5.9.3)
+    devDependencies:
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
