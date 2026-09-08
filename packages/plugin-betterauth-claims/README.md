@@ -1,34 +1,80 @@
-# packages/plugin-betterauth-claims
+# @mdht/plugin-betterauth-claims
 
-Implemented: a real ZenStack v3 `CliPlugin` (`index.ts`) that finds the
-model ZenStack resolves as `auth()`'s type (`ModelUtils.getAuthDecl`) and,
-for each of its enum-typed fields, emits a BetterAuth `additionalFields`
-entry — a literal-string-array `type` (so the field's inferred TS type is
-the enum union, not `string`) plus a `validator` built with the same
-`Schema.standardSchemaV1(...)` bridge `plugin-ts-rest-contract` uses. One
-validation language, two boundaries (API contract and auth), same source
-schema.
+[![npm](https://img.shields.io/npm/v/@mdht/plugin-betterauth-claims.svg)](https://www.npmjs.com/package/@mdht/plugin-betterauth-claims)
+[![CI](https://github.com/standard-librarian/prisma-schema-codegen-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/standard-librarian/prisma-schema-codegen-bridge/actions/workflows/ci.yml)
 
-Verified at three levels, not just type-checked in isolation:
+Generate BetterAuth `additionalFields` from enum fields on the ZenStack auth
+model. One enum then drives both BetterAuth session typing and ZenStack access
+policies such as `auth().role == 'ADMIN'`.
 
-1. The generated file type-checks against a real `@better-auth/core`/
-   `effect` install.
-2. Wired into a real `betterAuth({ user: { additionalFields } })` call, the
-   resulting `auth.$Infer.Session['user']['role']` type comes out as
-   `'CASHIER' | 'MANAGER'`, not widened to `string` — proof the
-   literal-array trick survives BetterAuth's own type inference, not just
-   our generated file in a vacuum.
-3. The generated `validator.input['~standard'].validate(...)` was executed
-   at runtime against valid and invalid input.
+![Schema Codegen Bridge architecture](https://raw.githubusercontent.com/standard-librarian/prisma-schema-codegen-bridge/main/docs/architecture.svg)
 
-`examples/pos-inventory-demo`'s `StaffMember` model is marked `@@auth`, and
-`InventoryItem` has real `@@allow('create,update,delete', auth().role ==
-'MANAGER')` policies (via `@zenstackhq/plugin-policy`) referencing the same
-`Role` enum this plugin bridges to BetterAuth — the "one enum drives both
-authorization systems" claim from root `PLAN.md` M4 is demonstrated end to
-end, not just asserted.
+## Install
 
-Known limitations (see `../../docs/plugin-api-notes.md`): only a
-`model`-based `@@auth` target is supported (a `type`/`TypeDef` target is
-detected and silently skipped), and only enum-typed fields are bridged —
-plain scalar claims aren't.
+```bash
+npm install --save-dev @zenstackhq/cli @mdht/plugin-betterauth-claims
+npm install better-auth @better-auth/core effect
+```
+
+## Configure
+
+```zmodel
+plugin betterauthClaims {
+    provider = '@mdht/plugin-betterauth-claims'
+    output = '../generated/betterauth-claims.ts'
+}
+
+enum Role {
+    MEMBER
+    ADMIN
+}
+
+model User {
+    id   String @id @default(cuid())
+    role Role
+
+    @@auth
+}
+```
+
+Run `npx zen generate`, then add the generated configuration to BetterAuth:
+
+```ts
+import { betterAuth } from 'better-auth';
+import { additionalFields } from './generated/betterauth-claims.js';
+
+export const auth = betterAuth({
+  user: { additionalFields },
+});
+
+type SessionRole = typeof auth.$Infer.Session.user.role;
+//   ^? 'MEMBER' | 'ADMIN'
+```
+
+Each claim is generated with:
+
+- a literal string array for BetterAuth's inferred union;
+- an Effect `Schema.Literal` wrapped as Standard Schema;
+- `input: false`, so privileged claims are not trusted from user input;
+- `required: false` when the ZModel field is nullable.
+
+The module also exports each enum tuple/type and individual field configuration,
+such as `RoleValues`, `Role`, and `roleField`.
+
+## Requirements and limits
+
+- Node.js 22.6 or newer
+- ZenStack 3.9.x
+- BetterAuth 1.7.x
+- Effect 3.16 or newer
+- The auth target must be a `model`, selected by `@@auth` or ZenStack's `User`
+  fallback.
+- Only enum-typed auth fields are generated today; scalar custom claims and
+  `type` / `TypeDef` auth targets are not yet supported.
+
+See the [full documentation](https://github.com/standard-librarian/prisma-schema-codegen-bridge#readme)
+and [verified example](https://github.com/standard-librarian/prisma-schema-codegen-bridge/tree/main/examples/pos-inventory-demo).
+
+## License
+
+MIT

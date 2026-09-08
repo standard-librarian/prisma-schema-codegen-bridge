@@ -154,6 +154,38 @@ export class SchemaType implements SchemaDef {
             uniqueFields: {
                 id: { type: "String" }
             }
+        },
+        WarehouseBin: {
+            name: "WarehouseBin",
+            fields: {
+                warehouseId: {
+                    name: "warehouseId",
+                    type: "String",
+                    id: true
+                },
+                binNumber: {
+                    name: "binNumber",
+                    type: "Int",
+                    id: true
+                },
+                label: {
+                    name: "label",
+                    type: "String"
+                },
+                note: {
+                    name: "note",
+                    type: "String",
+                    optional: true
+                }
+            },
+            attributes: [
+                { name: "@@id", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("warehouseId"), ExpressionUtils.field("binNumber")]) }] },
+                { name: "@@tsRestContract" }
+            ] as readonly AttributeApplication[],
+            idFields: ["warehouseId", "binNumber"],
+            uniqueFields: {
+                warehouseId_binNumber: { warehouseId: { type: "String" }, binNumber: { type: "Int" } }
+            }
         }
     } as const;
     enums = {

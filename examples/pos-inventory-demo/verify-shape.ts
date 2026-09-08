@@ -17,9 +17,18 @@
 //    the ts-rest contract that isn't a real field on the Jazz CoValue.
 
 import assert from 'node:assert/strict';
-import { InventoryItem, Order, RoleValues as JazzRoleValues } from './generated/jazz-schema.ts';
-import { InventoryItemSchema, OrderSchema, RoleValues as ContractRoleValues } from './generated/ts-rest-contract.ts';
+import { InventoryItem, Order, RoleValues as JazzRoleValues, WarehouseBin } from './generated/jazz-schema.ts';
+import {
+  InventoryItemSchema,
+  OrderSchema,
+  RoleValues as ContractRoleValues,
+  WarehouseBinCreateSchema,
+  WarehouseBinSchema,
+  WarehouseBinUpdateSchema,
+  warehouseBinContract,
+} from './generated/ts-rest-contract.ts';
 import { RoleValues as AuthRoleValues } from './generated/betterauth-claims.ts';
+import { Schema } from 'effect';
 
 // ---- Type-level: exact type equality, the standard tsd/expect-type trick ----
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
@@ -41,6 +50,15 @@ type _InventoryItemFieldsSubset = MustBeTrue<
   KeysSubsetOf<keyof (typeof InventoryItemSchema)['fields'], keyof (typeof InventoryItem)['shape']>
 >;
 type _OrderFieldsSubset = MustBeTrue<KeysSubsetOf<keyof (typeof OrderSchema)['fields'], keyof (typeof Order)['shape']>>;
+type _WarehouseBinFieldsSubset = MustBeTrue<
+  KeysSubsetOf<keyof (typeof WarehouseBinSchema)['fields'], keyof (typeof WarehouseBin)['shape']>
+>;
+type _WarehouseBinCreateFields = MustBeTrue<
+  Equal<keyof (typeof WarehouseBinCreateSchema)['fields'], 'warehouseId' | 'binNumber' | 'label' | 'note'>
+>;
+type _WarehouseBinUpdateFields = MustBeTrue<
+  Equal<keyof (typeof WarehouseBinUpdateSchema)['fields'], 'label' | 'note'>
+>;
 
 // ---- Runtime: the same two checks, so a `tsc --noEmit` skip (or an `any`
 // creeping in somewhere) can't silently hide a real mismatch. ----
@@ -54,5 +72,23 @@ function assertKeysSubset(subLabel: string, sub: readonly string[], supLabel: st
 
 assertKeysSubset('ts-rest InventoryItemSchema.fields', Object.keys(InventoryItemSchema.fields), 'Jazz InventoryItem.shape', Object.keys(InventoryItem.shape));
 assertKeysSubset('ts-rest OrderSchema.fields', Object.keys(OrderSchema.fields), 'Jazz Order.shape', Object.keys(Order.shape));
+
+assert.equal(
+  warehouseBinContract.getById.path,
+  '/warehouseBins/:warehouseId/:binNumber',
+  'compound IDs should produce one path segment per ID field',
+);
+
+const createValidator = warehouseBinContract.create.body['~standard'];
+const validCreate = await createValidator.validate({ warehouseId: 'main', binNumber: 7, label: 'A-7', note: null });
+assert.equal(validCreate.issues, undefined, 'nullable fields should accept null on create');
+const missingNaturalId = await createValidator.validate({ label: 'A-7' });
+assert.ok(missingNaturalId.issues?.length, 'natural and compound IDs without defaults must be required on create');
+
+const recordValidator = Schema.standardSchemaV1(WarehouseBinSchema)['~standard'];
+const validRecord = await recordValidator.validate({ warehouseId: 'main', binNumber: 7, label: 'A-7', note: null });
+assert.equal(validRecord.issues, undefined, 'nullable fields should accept null in response records');
+const missingNullableRecordField = await recordValidator.validate({ warehouseId: 'main', binNumber: 7, label: 'A-7' });
+assert.ok(missingNullableRecordField.issues?.length, 'nullable record fields should be present even when their value is null');
 
 console.log('verify-shape: all cross-artifact checks passed.');

@@ -11,5 +11,6 @@ export type StaffMember = $ModelResult<$Schema, "StaffMember">;
 export type InventoryItem = $ModelResult<$Schema, "InventoryItem">;
 export type Order = $ModelResult<$Schema, "Order">;
 export type OrderLineItem = $ModelResult<$Schema, "OrderLineItem">;
+export type WarehouseBin = $ModelResult<$Schema, "WarehouseBin">;
 export const Role = $schema.enums.Role.values;
 export type Role = (typeof Role)[keyof typeof Role];

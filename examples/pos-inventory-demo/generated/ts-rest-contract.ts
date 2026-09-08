@@ -12,9 +12,15 @@ export const InventoryItemSchema = Schema.Struct({
   quantityOnHand: Schema.Number,
 });
 
-const InventoryItemCreateSchema = Schema.Struct({
+export const InventoryItemCreateSchema = Schema.Struct({
+  id: Schema.optional(Schema.String),
   name: Schema.String,
   quantityOnHand: Schema.Number,
+});
+
+export const InventoryItemUpdateSchema = Schema.Struct({
+  name: Schema.optional(Schema.String),
+  quantityOnHand: Schema.optional(Schema.Number),
 });
 
 export const inventoryItemContract = c.router({
@@ -26,7 +32,9 @@ export const inventoryItemContract = c.router({
   getById: {
     method: 'GET',
     path: '/inventoryItems/:id',
-    pathParams: Schema.standardSchemaV1(Schema.Struct({ id: Schema.String })),
+    pathParams: Schema.standardSchemaV1(Schema.Struct({
+      id: Schema.String,
+    })),
     responses: { 200: Schema.standardSchemaV1(InventoryItemSchema), 404: Schema.standardSchemaV1(Schema.Struct({ message: Schema.String })) },
   },
   create: {
@@ -38,14 +46,18 @@ export const inventoryItemContract = c.router({
   update: {
     method: 'PATCH',
     path: '/inventoryItems/:id',
-    pathParams: Schema.standardSchemaV1(Schema.Struct({ id: Schema.String })),
-    body: Schema.standardSchemaV1(Schema.partial(InventoryItemCreateSchema)),
+    pathParams: Schema.standardSchemaV1(Schema.Struct({
+      id: Schema.String,
+    })),
+    body: Schema.standardSchemaV1(InventoryItemUpdateSchema),
     responses: { 200: Schema.standardSchemaV1(InventoryItemSchema) },
   },
   remove: {
     method: 'DELETE',
     path: '/inventoryItems/:id',
-    pathParams: Schema.standardSchemaV1(Schema.Struct({ id: Schema.String })),
+    pathParams: Schema.standardSchemaV1(Schema.Struct({
+      id: Schema.String,
+    })),
     body: c.noBody(),
     responses: { 204: c.noBody() },
   },
@@ -57,8 +69,14 @@ export const OrderSchema = Schema.Struct({
   createdAt: Schema.DateFromString,
 });
 
-const OrderCreateSchema = Schema.Struct({
+export const OrderCreateSchema = Schema.Struct({
+  id: Schema.optional(Schema.String),
   status: Schema.String,
+  createdAt: Schema.optional(Schema.DateFromString),
+});
+
+export const OrderUpdateSchema = Schema.Struct({
+  status: Schema.optional(Schema.String),
   createdAt: Schema.optional(Schema.DateFromString),
 });
 
@@ -71,7 +89,9 @@ export const orderContract = c.router({
   getById: {
     method: 'GET',
     path: '/orders/:id',
-    pathParams: Schema.standardSchemaV1(Schema.Struct({ id: Schema.String })),
+    pathParams: Schema.standardSchemaV1(Schema.Struct({
+      id: Schema.String,
+    })),
     responses: { 200: Schema.standardSchemaV1(OrderSchema), 404: Schema.standardSchemaV1(Schema.Struct({ message: Schema.String })) },
   },
   create: {
@@ -83,14 +103,80 @@ export const orderContract = c.router({
   update: {
     method: 'PATCH',
     path: '/orders/:id',
-    pathParams: Schema.standardSchemaV1(Schema.Struct({ id: Schema.String })),
-    body: Schema.standardSchemaV1(Schema.partial(OrderCreateSchema)),
+    pathParams: Schema.standardSchemaV1(Schema.Struct({
+      id: Schema.String,
+    })),
+    body: Schema.standardSchemaV1(OrderUpdateSchema),
     responses: { 200: Schema.standardSchemaV1(OrderSchema) },
   },
   remove: {
     method: 'DELETE',
     path: '/orders/:id',
-    pathParams: Schema.standardSchemaV1(Schema.Struct({ id: Schema.String })),
+    pathParams: Schema.standardSchemaV1(Schema.Struct({
+      id: Schema.String,
+    })),
+    body: c.noBody(),
+    responses: { 204: c.noBody() },
+  },
+});
+
+export const WarehouseBinSchema = Schema.Struct({
+  warehouseId: Schema.String,
+  binNumber: Schema.Number,
+  label: Schema.String,
+  note: Schema.NullOr(Schema.String),
+});
+
+export const WarehouseBinCreateSchema = Schema.Struct({
+  warehouseId: Schema.String,
+  binNumber: Schema.Number,
+  label: Schema.String,
+  note: Schema.optional(Schema.NullOr(Schema.String)),
+});
+
+export const WarehouseBinUpdateSchema = Schema.Struct({
+  label: Schema.optional(Schema.String),
+  note: Schema.optional(Schema.NullOr(Schema.String)),
+});
+
+export const warehouseBinContract = c.router({
+  list: {
+    method: 'GET',
+    path: '/warehouseBins',
+    responses: { 200: Schema.standardSchemaV1(Schema.Array(WarehouseBinSchema)) },
+  },
+  getById: {
+    method: 'GET',
+    path: '/warehouseBins/:warehouseId/:binNumber',
+    pathParams: Schema.standardSchemaV1(Schema.Struct({
+      warehouseId: Schema.String,
+      binNumber: Schema.String,
+    })),
+    responses: { 200: Schema.standardSchemaV1(WarehouseBinSchema), 404: Schema.standardSchemaV1(Schema.Struct({ message: Schema.String })) },
+  },
+  create: {
+    method: 'POST',
+    path: '/warehouseBins',
+    body: Schema.standardSchemaV1(WarehouseBinCreateSchema),
+    responses: { 201: Schema.standardSchemaV1(WarehouseBinSchema) },
+  },
+  update: {
+    method: 'PATCH',
+    path: '/warehouseBins/:warehouseId/:binNumber',
+    pathParams: Schema.standardSchemaV1(Schema.Struct({
+      warehouseId: Schema.String,
+      binNumber: Schema.String,
+    })),
+    body: Schema.standardSchemaV1(WarehouseBinUpdateSchema),
+    responses: { 200: Schema.standardSchemaV1(WarehouseBinSchema) },
+  },
+  remove: {
+    method: 'DELETE',
+    path: '/warehouseBins/:warehouseId/:binNumber',
+    pathParams: Schema.standardSchemaV1(Schema.Struct({
+      warehouseId: Schema.String,
+      binNumber: Schema.String,
+    })),
     body: c.noBody(),
     responses: { 204: c.noBody() },
   },
@@ -99,4 +185,5 @@ export const orderContract = c.router({
 export const contract = c.router({
   inventoryItems: inventoryItemContract,
   orders: orderContract,
+  warehouseBins: warehouseBinContract,
 });

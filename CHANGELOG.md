@@ -6,6 +6,41 @@ shared across the workspace's publishable packages (`@mdht/generator-core`,
 `@mdht/plugin-betterauth-claims`, `schema-codegen-bridge`). All five are
 published on npm.
 
+## 0.2.0 - 2026-09-08
+
+### Fixed
+
+- Declared `@zenstackhq/language` directly in every package that imports it.
+  The monorepo previously masked this missing runtime dependency through other
+  workspace packages.
+- Required natural and compound IDs are now present in REST create schemas;
+  defaulted fields remain optional and ID fields remain protected on patch.
+- ZModel nullable fields in REST record schemas now accept `null` while create
+  and patch omission is modeled separately.
+- Compound IDs generate one URL path segment and path parameter per ID field.
+- Unsupported database-native field types remain `Unsupported` in the shared IR
+  and map conservatively to unknown validators instead of silently becoming
+  strings.
+- The CLI now matches ZenStack schema discovery (`package.json`, root schema,
+  then `zenstack/schema.zmodel`), supports `--schema=<path>`, rejects malformed
+  flags, ignores plugin names in comments, and executes its installed ZenStack
+  CLI directly instead of routing through `npx`.
+
+### Added
+
+- Root source typechecking plus CLI regression tests.
+- Exported create and update Effect schemas for each generated REST model.
+- Compound-ID and nullable-field coverage in the POS inventory example.
+- Standalone npm documentation for all five packages and an architecture
+  diagram shared by the repository and package pages.
+
+### Changed
+
+- All publishable packages now share version `0.2.0` and use the stable
+  ZenStack 3.9.x SDK/language release line instead of the canary tag.
+- Package metadata now includes homepage, issue tracker, and public publish
+  configuration.
+
 ## schema-codegen-bridge 0.1.1 - 2026-09-07
 
 Real `npm publish` surfaced a bug `npm publish --dry-run` couldn't catch:

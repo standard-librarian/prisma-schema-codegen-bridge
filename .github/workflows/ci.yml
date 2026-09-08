@@ -29,13 +29,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Regenerate, type-check, and cross-verify examples/pos-inventory-demo
-        working-directory: examples/pos-inventory-demo
-        run: npm run verify
-
-      - name: Confirm the CLI wrapper produces the same result
-        working-directory: examples/pos-inventory-demo
-        run: npm run generate:cli
+      - name: Type-check source, regenerate examples, and run regression tests
+        run: pnpm run verify
 
   packaging:
     name: package publish readiness
@@ -70,26 +65,23 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: Regression test -- cli must actually run from a real node_modules install
-        # Node refuses to type-strip .ts files under node_modules (no flag
-        # overrides it), which the plugins never hit (loaded via ZenStack's
-        # jiti-based loader) but a `bin` entry does, since Node's own module
-        # loader executes it directly. This exact bug shipped in 0.1.0 and
-        # every earlier check here (workspace symlinks, --dry-run) missed it
-        # -- see docs/plugin-api-notes.md. Guards against it regressing.
+      - name: Regression test -- install every tarball and generate outside the workspace
+        # This catches three classes of problem that workspace links and dry
+        # runs cannot: workspace: ranges not rewritten, undeclared transitive
+        # imports, and a raw TypeScript CLI bin (the bug shipped in 0.1.0).
         run: |
           set -e
-          mkdir -p /tmp/cli-smoketest
-          (cd packages/cli && npm pack --pack-destination /tmp/cli-smoketest)
-          cd /tmp/cli-smoketest
+          smoke_dir="$(mktemp -d)"
+          trap 'rm -rf "$smoke_dir"' EXIT
+          mkdir -p "$smoke_dir/tarballs" "$smoke_dir/app/zenstack"
+          for pkg in generator-core plugin-jazz-schema plugin-ts-rest-contract plugin-betterauth-claims cli; do
+            (cd "packages/$pkg" && pnpm pack --pack-destination "$smoke_dir/tarballs")
+          done
+          cp examples/pos-inventory-demo/zenstack/schema.zmodel "$smoke_dir/app/zenstack/schema.zmodel"
+          cd "$smoke_dir/app"
           npm init -y >/dev/null
-          npm install ./schema-codegen-bridge-*.tgz
-          set +e
-          npx schema-codegen-bridge generate > out.log 2>&1
-          if grep -q "ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING" out.log; then
-            echo "::error::cli regressed: bin.ts is shipping as raw TypeScript again"
-            cat out.log
-            exit 1
-          fi
-          grep -q "Could not find a schema at" out.log || { echo "::error::unexpected output"; cat out.log; exit 1; }
-          echo "OK: cli ran and failed for the expected reason (no schema in this scratch dir), not a type-stripping crash"
+          npm install "$smoke_dir"/tarballs/*.tgz @zenstackhq/plugin-policy@3.9.3
+          npx schema-codegen-bridge generate -- --silent
+          test -f generated/jazz-schema.ts
+          test -f generated/ts-rest-contract.ts
+          test -f generated/betterauth-claims.ts

@@ -68,3 +68,16 @@ model OrderLineItem {
     inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
     inventoryItemId String
 }
+
+// Exercises required natural/compound IDs and nullable REST fields. These
+// cases are intentionally part of the demo because they have different input
+// semantics from generated cuid() IDs.
+model WarehouseBin {
+    warehouseId String
+    binNumber   Int
+    label       String
+    note        String?
+
+    @@id([warehouseId, binNumber])
+    @@tsRestContract
+}

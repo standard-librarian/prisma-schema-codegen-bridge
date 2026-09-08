@@ -1,8 +1,8 @@
 {
   "name": "schema-codegen-bridge",
-  "version": "0.1.1",
-  "description": "Thin CLI wrapper around ZenStack's `zen generate` for the schema-codegen-bridge plugin suite (Jazz, ts-rest, BetterAuth) -- validates all three plugin blocks are present before generating.",
-  "keywords": ["zenstack", "zmodel", "codegen", "cli"],
+  "version": "0.2.0",
+  "description": "Run ZenStack generation for the schema-codegen-bridge suite with schema discovery and actionable plugin validation.",
+  "keywords": ["zenstack", "zmodel", "codegen", "jazz", "ts-rest", "better-auth", "cli"],
   "license": "MIT",
   "author": "standard-librarian",
   "repository": {
@@ -10,6 +10,9 @@
     "url": "git+https://github.com/standard-librarian/prisma-schema-codegen-bridge.git",
     "directory": "packages/cli"
   },
+  "homepage": "https://github.com/standard-librarian/prisma-schema-codegen-bridge#readme",
+  "bugs": "https://github.com/standard-librarian/prisma-schema-codegen-bridge/issues",
+  "publishConfig": { "access": "public" },
   "type": "module",
   "bin": {
     "schema-codegen-bridge": "./dist/bin.js"

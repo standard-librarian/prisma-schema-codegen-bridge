@@ -31,25 +31,42 @@ const SCALAR_TO_EFFECT_SCHEMA: Record<string, string> = {
   Decimal: 'Schema.Number /* TODO: precision loss, see plugin-jazz-schema for the same open question */',
   Bytes: 'Schema.String /* TODO: no confirmed binary schema chosen yet */',
   Json: 'Schema.Unknown',
+  Unsupported: 'Schema.Unknown /* unsupported database-native type */',
 };
 
-// Relation fields are deliberately out of scope for the v0 CRUD contract --
+// Relation fields are deliberately out of scope for the CRUD contract --
 // see docs/plugin-api-notes.md / PLAN.md open questions. Only the plain
 // foreign-key scalar field (e.g. `orderId`) is included, since that's a real
 // scalar column on this model, not a nested resource.
-function structFieldLines(fields: IrField[], enumValueConsts: Map<string, string>): string[] {
+interface StructField {
+  field: IrField;
+  propertyOptional?: boolean;
+}
+
+function fieldSchemaExpression(field: IrField, enumValueConsts: Map<string, string>): string {
+  let expr: string;
+  if (field.kind === 'enum') {
+    const valuesConstName = enumValueConsts.get(field.enumName);
+    expr = `Schema.Literal(...${valuesConstName})`;
+  } else if (field.kind === 'scalar') {
+    expr = SCALAR_TO_EFFECT_SCHEMA[field.scalarType] ?? 'Schema.Unknown /* unmapped scalar type */';
+  } else {
+    throw new Error(`Cannot render relation field ${field.name} in a REST schema`);
+  }
+
+  if (field.isList) expr = `Schema.Array(${expr})`;
+  // ZModel's `?` means a nullable database value. It does not mean that a
+  // field can disappear from a record returned by the API.
+  if (field.isOptional) expr = `Schema.NullOr(${expr})`;
+  return expr;
+}
+
+function structFieldLines(fields: StructField[], enumValueConsts: Map<string, string>): string[] {
   const lines: string[] = [];
-  for (const f of fields) {
+  for (const { field: f, propertyOptional } of fields) {
     if (f.kind === 'relation') continue;
-    let expr: string;
-    if (f.kind === 'enum') {
-      const valuesConstName = enumValueConsts.get(f.enumName);
-      expr = `Schema.Literal(...${valuesConstName})`;
-    } else {
-      expr = SCALAR_TO_EFFECT_SCHEMA[f.scalarType] ?? 'Schema.Unknown /* TODO: unmapped scalar type */';
-    }
-    if (f.isList) expr = `Schema.Array(${expr})`;
-    if (f.isOptional) expr = `Schema.optional(${expr})`;
+    let expr = fieldSchemaExpression(f, enumValueConsts);
+    if (propertyOptional) expr = `Schema.optional(${expr})`;
     lines.push(`  ${f.name}: ${expr},`);
   }
   return lines;
@@ -61,34 +78,53 @@ function buildModelContract(
   enumValueConsts: Map<string, string>,
 ): string {
   const name = irModel.name;
-  const idFields = new Set(ModelUtils.getIdFields(decl));
+  const idFieldNames = ModelUtils.getIdFields(decl);
+  const idFields = new Set(idFieldNames);
   const rawFieldsByName = new Map(ModelUtils.getOwnedFields(decl).map((f) => [f.name, f] as const));
   const fieldsExcludingRelations = irModel.fields.filter((f) => f.kind !== 'relation');
   const createFields = fieldsExcludingRelations
-    .filter((f) => !idFields.has(f.name))
+    .filter((f) => {
+      const raw = rawFieldsByName.get(f.name);
+      return !raw || (!ModelUtils.hasAttribute(raw, '@computed') && !ModelUtils.hasAttribute(raw, '@updatedAt'));
+    })
     .map((f) => {
       // Fields with a schema-level @default (e.g. `createdAt DateTime @default(now())`)
-      // shouldn't be required on create, even if the ZModel type itself isn't `?`.
+      // and nullable fields can be omitted on create. Required natural or
+      // compound IDs remain required instead of being dropped wholesale.
       const raw = rawFieldsByName.get(f.name);
       const hasDefault = raw ? ModelUtils.hasAttribute(raw, '@default') : false;
-      return hasDefault ? { ...f, isOptional: true } : f;
+      return { field: f, propertyOptional: f.isOptional || hasDefault };
     });
+  const updateFields = fieldsExcludingRelations
+    .filter((f) => !idFields.has(f.name))
+    .filter((f) => {
+      const raw = rawFieldsByName.get(f.name);
+      return !raw || (!ModelUtils.hasAttribute(raw, '@computed') && !ModelUtils.hasAttribute(raw, '@updatedAt'));
+    })
+    .map((field) => ({ field, propertyOptional: true }));
 
   const recordSchemaName = `${name}Schema`;
   const createSchemaName = `${name}CreateSchema`;
+  const updateSchemaName = `${name}UpdateSchema`;
   const routeGroupName = `${name.charAt(0).toLowerCase()}${name.slice(1)}Contract`;
   const resourcePath = `/${name.charAt(0).toLowerCase()}${name.slice(1)}s`;
+  const routeIdFields = idFieldNames.length > 0 ? idFieldNames : ['id'];
+  const resourceByIdPath = `${resourcePath}/${routeIdFields.map((field) => `:${field}`).join('/')}`;
 
   const lines: string[] = [];
   // Exported (not just used internally) so consumers -- including
   // examples/pos-inventory-demo's cross-artifact shape check, PLAN.md M5 --
   // can introspect `.fields` without re-deriving the struct shape themselves.
   lines.push(`export const ${recordSchemaName} = Schema.Struct({`);
-  lines.push(...structFieldLines(fieldsExcludingRelations, enumValueConsts));
+  lines.push(...structFieldLines(fieldsExcludingRelations.map((field) => ({ field })), enumValueConsts));
   lines.push('});');
   lines.push('');
-  lines.push(`const ${createSchemaName} = Schema.Struct({`);
+  lines.push(`export const ${createSchemaName} = Schema.Struct({`);
   lines.push(...structFieldLines(createFields, enumValueConsts));
+  lines.push('});');
+  lines.push('');
+  lines.push(`export const ${updateSchemaName} = Schema.Struct({`);
+  lines.push(...structFieldLines(updateFields, enumValueConsts));
   lines.push('});');
   lines.push('');
   lines.push(`export const ${routeGroupName} = c.router({`);
@@ -99,8 +135,10 @@ function buildModelContract(
   lines.push('  },');
   lines.push('  getById: {');
   lines.push("    method: 'GET',");
-  lines.push(`    path: '${resourcePath}/:id',`);
-  lines.push('    pathParams: Schema.standardSchemaV1(Schema.Struct({ id: Schema.String })),');
+  lines.push(`    path: '${resourceByIdPath}',`);
+  lines.push('    pathParams: Schema.standardSchemaV1(Schema.Struct({');
+  for (const idField of routeIdFields) lines.push(`      ${idField}: Schema.String,`);
+  lines.push('    })),');
   lines.push(`    responses: { 200: Schema.standardSchemaV1(${recordSchemaName}), 404: Schema.standardSchemaV1(Schema.Struct({ message: Schema.String })) },`);
   lines.push('  },');
   lines.push('  create: {');
@@ -111,15 +149,19 @@ function buildModelContract(
   lines.push('  },');
   lines.push('  update: {');
   lines.push("    method: 'PATCH',");
-  lines.push(`    path: '${resourcePath}/:id',`);
-  lines.push('    pathParams: Schema.standardSchemaV1(Schema.Struct({ id: Schema.String })),');
-  lines.push(`    body: Schema.standardSchemaV1(Schema.partial(${createSchemaName})),`);
+  lines.push(`    path: '${resourceByIdPath}',`);
+  lines.push('    pathParams: Schema.standardSchemaV1(Schema.Struct({');
+  for (const idField of routeIdFields) lines.push(`      ${idField}: Schema.String,`);
+  lines.push('    })),');
+  lines.push(`    body: Schema.standardSchemaV1(${updateSchemaName}),`);
   lines.push(`    responses: { 200: Schema.standardSchemaV1(${recordSchemaName}) },`);
   lines.push('  },');
   lines.push('  remove: {');
   lines.push("    method: 'DELETE',");
-  lines.push(`    path: '${resourcePath}/:id',`);
-  lines.push('    pathParams: Schema.standardSchemaV1(Schema.Struct({ id: Schema.String })),');
+  lines.push(`    path: '${resourceByIdPath}',`);
+  lines.push('    pathParams: Schema.standardSchemaV1(Schema.Struct({');
+  for (const idField of routeIdFields) lines.push(`      ${idField}: Schema.String,`);
+  lines.push('    })),');
   lines.push('    body: c.noBody(),');
   lines.push('    responses: { 204: c.noBody() },');
   lines.push('  },');

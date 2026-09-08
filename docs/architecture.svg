@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
+  <title id="title">Schema Codegen Bridge architecture</title>
+  <desc id="desc">One ZenStack ZModel is converted into a shared intermediate representation, then into Jazz, ts-rest, and BetterAuth TypeScript artifacts.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8fafc"/><stop offset="1" stop-color="#eef2ff"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+    <filter id="shadow" x="-10%" y="-20%" width="120%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.12"/></filter>
+  </defs>
+  <rect width="1200" height="420" rx="28" fill="url(#bg)"/>
+  <text x="600" y="50" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="25" font-weight="700" fill="#0f172a">One model. Three synchronized boundaries.</text>
+  <path d="M330 210 H455" stroke="#64748b" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M745 210 C820 210 810 116 865 116" stroke="#64748b" stroke-width="4" fill="none" marker-end="url(#arrow)"/>
+  <path d="M745 210 H865" stroke="#64748b" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M745 210 C820 210 810 304 865 304" stroke="#64748b" stroke-width="4" fill="none" marker-end="url(#arrow)"/>
+  <g filter="url(#shadow)">
+    <rect x="70" y="135" width="260" height="150" rx="18" fill="#fff" stroke="#7c3aed" stroke-width="3"/>
+    <text x="200" y="184" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="19" font-weight="700" fill="#5b21b6">ZenStack .zmodel</text>
+    <text x="200" y="220" text-anchor="middle" font-family="ui-monospace,monospace" font-size="15" fill="#475569">models · fields · enums</text>
+    <text x="200" y="249" text-anchor="middle" font-family="ui-monospace,monospace" font-size="15" fill="#475569">IDs · defaults · nullability</text>
+    <rect x="455" y="135" width="290" height="150" rx="18" fill="#0f172a"/>
+    <text x="600" y="183" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="19" font-weight="700" fill="#fff">@mdht/generator-core</text>
+    <text x="600" y="221" text-anchor="middle" font-family="ui-monospace,monospace" font-size="16" fill="#c4b5fd">neutral shared IR</text>
+    <text x="600" y="251" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="14" fill="#cbd5e1">one AST traversal for every plugin</text>
+    <rect x="865" y="73" width="265" height="86" rx="16" fill="#fff" stroke="#0ea5e9" stroke-width="3"/>
+    <text x="997" y="108" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="18" font-weight="700" fill="#0369a1">Jazz schema</text><text x="997" y="134" text-anchor="middle" font-family="ui-monospace,monospace" font-size="14" fill="#475569">co.map · co.list</text>
+    <rect x="865" y="167" width="265" height="86" rx="16" fill="#fff" stroke="#f59e0b" stroke-width="3"/>
+    <text x="997" y="202" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="18" font-weight="700" fill="#b45309">ts-rest contract</text><text x="997" y="228" text-anchor="middle" font-family="ui-monospace,monospace" font-size="14" fill="#475569">Effect · Standard Schema</text>
+    <rect x="865" y="261" width="265" height="86" rx="16" fill="#fff" stroke="#22c55e" stroke-width="3"/>
+    <text x="997" y="296" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="18" font-weight="700" fill="#15803d">BetterAuth claims</text><text x="997" y="322" text-anchor="middle" font-family="ui-monospace,monospace" font-size="14" fill="#475569">additionalFields</text>
+  </g>
+  <text x="600" y="385" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="14" fill="#64748b">Generated TypeScript is checked together so drift fails in CI.</text>
+</svg>

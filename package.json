@@ -1,12 +1,17 @@
 {
   "name": "prisma-schema-codegen-bridge",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "verify": "pnpm --filter pos-inventory-demo run verify",
-    "pack:dry-run": "for pkg in generator-core plugin-jazz-schema plugin-ts-rest-contract plugin-betterauth-claims cli; do (cd packages/$pkg && npm pack --dry-run); done"
+    "build": "pnpm --filter schema-codegen-bridge run build",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "pnpm run build && node --test tests/*.test.js",
+    "verify": "pnpm run typecheck && pnpm --filter pos-inventory-demo run verify && pnpm run test",
+    "pack:dry-run": "for pkg in generator-core plugin-jazz-schema plugin-ts-rest-contract plugin-betterauth-claims cli; do (cd packages/$pkg && npm_config_cache=/tmp/schema-codegen-npm-cache npm pack --dry-run); done"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
     "typescript": "^5.7.0"
   }
 }

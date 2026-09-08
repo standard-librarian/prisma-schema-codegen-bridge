@@ -33,3 +33,10 @@ export const OrderLineItem = co.map({
   inventoryItemId: z.string(),
 });
 
+export const WarehouseBin = co.map({
+  warehouseId: z.string(),
+  binNumber: z.number(),
+  label: z.string(),
+  note: z.string().optional(),
+});
+

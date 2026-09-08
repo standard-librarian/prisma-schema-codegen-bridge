@@ -6,7 +6,7 @@
     "generate": "zen generate",
     "generate:cli": "schema-codegen-bridge generate",
     "typecheck": "tsc -p .",
-    "verify": "npm run generate && npm run typecheck && node verify-shape.ts"
+    "verify": "pnpm run generate && pnpm run typecheck && node verify-shape.ts"
   },
   "dependencies": {
     "@better-auth/core": "^1.7.3",
@@ -24,7 +24,7 @@
   "devDependencies": {
     "@types/node": "^26.4.1",
     "@zenstackhq/cli": "^3.9.3",
-    "@zenstackhq/sdk": "^3.9.4-beta.1",
+    "@zenstackhq/sdk": "^3.9.3",
     "schema-codegen-bridge": "workspace:*",
     "typescript": "^5.7.0"
   }

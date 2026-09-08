@@ -1,9 +1,10 @@
 # examples/pos-inventory-demo
 
 A real ZModel schema (`zenstack/schema.zmodel`): `StaffMember` (with a
-`Role` enum field, marked `@@auth`), `InventoryItem`, `Order`, and
-`OrderLineItem` (the relation table joining the two, matching how
-ZenStack/Prisma model many-to-many via an explicit join model).
+`Role` enum field, marked `@@auth`), `InventoryItem`, `Order`,
+`OrderLineItem`, and `WarehouseBin`. The last model deliberately exercises a
+compound natural ID and nullable field so the REST generator's create, update,
+response, and route semantics stay covered.
 
 `Order` and `InventoryItem` are marked `@@tsRestContract`. `InventoryItem`
 also has real access policies (via `@zenstackhq/plugin-policy`) that read
@@ -25,24 +26,24 @@ through this bridge's own wrapper CLI (`npm run generate:cli`, i.e.
 specific error if any of the three plugin blocks is missing, instead of a
 confusing failure later.
 
-Run `npm run verify` in this directory to regenerate everything, type-check
+Run `pnpm run verify` in this directory to regenerate everything, type-check
 it, and run the cross-artifact shape checks in one go:
 
 ```bash
-npm run verify
-# = npm run generate   (zen generate: regenerates zenstack/*, generated/*.ts)
-# + npm run typecheck  (tsc -p . -- see tsconfig.json for the flags this needs,
+pnpm run verify
+# = pnpm run generate   (zen generate: regenerates zenstack/*, generated/*.ts)
+# + pnpm run typecheck  (tsc -p . -- see tsconfig.json for the flags this needs,
 #                        in particular --skipLibCheck: jazz-tools/cojson's own
 #                        .d.ts files fail under --strict for reasons unrelated
 #                        to this project's generated code)
 # + node verify-shape.ts
 ```
 
-`verify-shape.ts` (PLAN.md M5) is the "do the three generators actually
-still agree" check: it asserts the `Role` enum values emitted independently
-by all three plugins are exactly equal, and that the ts-rest contract's
-field keys are a subset of the Jazz CoValue's own field shape -- each as
-both a compile-time type assertion and a runtime `assert`. This was
+`verify-shape.ts` (PLAN.md M5) is the "do the generators actually still
+agree" check: it asserts the `Role` enum values emitted independently by all
+three plugins are exactly equal, that REST field keys are a subset of the Jazz
+shape, and that nullable and compound-ID REST behavior is correct. These are
+enforced with compile-time and runtime assertions. The drift check was
 confirmed to actually fail (not just theoretically would) by deliberately
 breaking one generated file and watching both the type-check and the
 runtime assertion catch it before restoring the file -- see

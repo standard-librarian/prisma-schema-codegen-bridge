@@ -19,7 +19,8 @@ export type IrScalarType =
   | 'BigInt'
   | 'Decimal'
   | 'Bytes'
-  | 'Json';
+  | 'Json'
+  | 'Unsupported';
 
 export interface IrFieldBase {
   name: string;
@@ -106,8 +107,12 @@ function toIrField(field: DataField, enumNames: Set<string>): IrField {
     return { ...base, kind: 'relation', relationTarget: targetName };
   }
 
-  // `type.type` is a Prisma-style BuiltinType when the field isn't a
-  // relation/enum reference. `type.unsupported` (raw DB-native types) is not
-  // handled yet -- see docs/plugin-api-notes.md open questions.
-  return { ...base, kind: 'scalar', scalarType: (type.type ?? 'String') as IrScalarType };
+  // Unsupported DB-native fields have a separate AST node. Keep that fact in
+  // the IR instead of silently pretending they are strings; generators can
+  // then choose an explicit, conservative fallback.
+  if (type.unsupported) {
+    return { ...base, kind: 'scalar', scalarType: 'Unsupported' };
+  }
+
+  return { ...base, kind: 'scalar', scalarType: (type.type ?? 'Unsupported') as IrScalarType };
 }

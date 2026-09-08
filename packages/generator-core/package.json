@@ -1,6 +1,6 @@
 {
   "name": "@mdht/generator-core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shared IR builder over the ZModel AST, used by schema-codegen-bridge's generator plugins so none of them re-implements AST traversal.",
   "keywords": ["zenstack", "zmodel", "codegen", "ast"],
   "license": "MIT",
@@ -10,6 +10,9 @@
     "url": "git+https://github.com/standard-librarian/prisma-schema-codegen-bridge.git",
     "directory": "packages/generator-core"
   },
+  "homepage": "https://github.com/standard-librarian/prisma-schema-codegen-bridge#readme",
+  "bugs": "https://github.com/standard-librarian/prisma-schema-codegen-bridge/issues",
+  "publishConfig": { "access": "public" },
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -19,7 +22,8 @@
     "node": ">=22.6.0"
   },
   "dependencies": {
-    "@zenstackhq/sdk": "^3.9.4-beta.1"
+    "@zenstackhq/language": "^3.9.3",
+    "@zenstackhq/sdk": "^3.9.3"
   },
   "devDependencies": {
     "typescript": "^5.7.0"

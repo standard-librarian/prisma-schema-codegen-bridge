@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.1
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -55,8 +58,8 @@ importers:
         specifier: ^3.9.3
         version: 3.9.3(kysely@0.29.5)(typescript@5.9.3)
       '@zenstackhq/sdk':
-        specifier: ^3.9.4-beta.1
-        version: 3.9.4-beta.1
+        specifier: ^3.9.3
+        version: 3.9.3
       schema-codegen-bridge:
         specifier: workspace:*
         version: link:../../packages/cli
@@ -79,9 +82,12 @@ importers:
 
   packages/generator-core:
     dependencies:
+      '@zenstackhq/language':
+        specifier: ^3.9.3
+        version: 3.9.3
       '@zenstackhq/sdk':
-        specifier: ^3.9.4-beta.1
-        version: 3.9.4-beta.1
+        specifier: ^3.9.3
+        version: 3.9.3
     devDependencies:
       typescript:
         specifier: ^5.7.0
@@ -93,11 +99,14 @@ importers:
         specifier: ^1.7.0
         version: 1.7.3(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.1)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.5.4))(jose@6.2.12)(kysely@0.29.5)(nanostores@1.5.3)
       '@mdht/generator-core':
-        specifier: workspace:^0.1.0
+        specifier: workspace:^0.2.0
         version: link:../generator-core
+      '@zenstackhq/language':
+        specifier: ^3.9.3
+        version: 3.9.3
       '@zenstackhq/sdk':
-        specifier: ^3.9.4-beta.1
-        version: 3.9.4-beta.1
+        specifier: ^3.9.3
+        version: 3.9.3
       effect:
         specifier: ^3.16.0
         version: 3.22.1
@@ -109,11 +118,11 @@ importers:
   packages/plugin-jazz-schema:
     dependencies:
       '@mdht/generator-core':
-        specifier: workspace:^0.1.0
+        specifier: workspace:^0.2.0
         version: link:../generator-core
       '@zenstackhq/sdk':
-        specifier: ^3.9.4-beta.1
-        version: 3.9.4-beta.1
+        specifier: ^3.9.3
+        version: 3.9.3
       jazz-tools:
         specifier: ^0.20.0
         version: 0.20.19(better-auth@1.7.3(@opentelemetry/api@1.9.1)(prisma@6.19.3(typescript@5.9.3))(react@19.2.8))(csstype@3.2.3)(react-native@0.87.1(@babel/core@7.29.7)(react@19.2.8))(react@19.2.8)
@@ -125,14 +134,17 @@ importers:
   packages/plugin-ts-rest-contract:
     dependencies:
       '@mdht/generator-core':
-        specifier: workspace:^0.1.0
+        specifier: workspace:^0.2.0
         version: link:../generator-core
       '@ts-rest/core':
         specifier: 3.53.0-rc.1
         version: 3.53.0-rc.1(@types/node@26.4.1)
+      '@zenstackhq/language':
+        specifier: ^3.9.3
+        version: 3.9.3
       '@zenstackhq/sdk':
-        specifier: ^3.9.4-beta.1
-        version: 3.9.4-beta.1
+        specifier: ^3.9.3
+        version: 3.9.3
       effect:
         specifier: ^3.16.0
         version: 3.22.1
@@ -519,14 +531,8 @@ packages:
   '@zenstackhq/common-helpers@3.9.3':
     resolution: {integrity: sha512-DhelVJ7jRgghgNO7LBVAZcTYVprYefCWAy1t01x/o9r7JYziuGxbaHgYpuzGUTz51P7rQi9X+Dl6h6r9ZmRPBQ==}
 
-  '@zenstackhq/common-helpers@3.9.4-beta.1':
-    resolution: {integrity: sha512-Og7pvGqQlrXcNs3B+ZGDngXjgukAZvQVQ9L25sQzXaqfRAJiJv0B6rPphQbT3HpRoMu4ZtHt5htNhXXhP1yzHg==}
-
   '@zenstackhq/language@3.9.3':
     resolution: {integrity: sha512-2pnxkOZs9B2gqbAkelfbZ8DScVx/yERvVqSZRWRVJaHGxTPzjglpjilEoFqcQcUvhfEFdiTjS0Hr3ZPwHbR+Vw==}
-
-  '@zenstackhq/language@3.9.4-beta.1':
-    resolution: {integrity: sha512-GDPEOgk7ciEzahnJUoV7PaW5BANEijeTmjnbHCLkLVI6JBkapMoVSkdG77VnbjK+e2RcguFIcHvDHdjzqCcU+g==}
 
   '@zenstackhq/orm@3.9.3':
     resolution: {integrity: sha512-sWUvz8fUJ9AdMHuDvIVgZp9SVt4EI21iFkdMzBH354t0308ASIVP9IOETUzjcUs2n6osapvmofgmwsSw2ERrIw==}
@@ -556,9 +562,6 @@ packages:
 
   '@zenstackhq/sdk@3.9.3':
     resolution: {integrity: sha512-olCcxK9/tISgIJ8HA63dtxJVlWgwZpeFkcG62S8vPoAY8JhzA5M16Aok/ncYk6GZtW2B3ZYiBLVnUZwlJSbfeQ==}
-
-  '@zenstackhq/sdk@3.9.4-beta.1':
-    resolution: {integrity: sha512-CHuhD1RvkdaPNiMZWWaKzocOJ6LUcdsF3pZuwcRUU+8KL/Jb3vmXTycLvu9KxbSv2hpxK0XLEW0PeV7l0fetVw==}
 
   '@zenstackhq/server@3.9.3':
     resolution: {integrity: sha512-4SuGthpJ2VhEW3+pO+o2w/cCU+VkBPMvJnnOXVG9HSjHN8Yfc11BjY4sXZr6TR1cbwPIdvDneImKt4SxPhd7Lg==}
@@ -2546,19 +2549,9 @@ snapshots:
 
   '@zenstackhq/common-helpers@3.9.3': {}
 
-  '@zenstackhq/common-helpers@3.9.4-beta.1': {}
-
   '@zenstackhq/language@3.9.3':
     dependencies:
       '@zenstackhq/common-helpers': 3.9.3
-      langium: 4.2.4
-      pluralize: 8.0.0
-      ts-pattern: 5.9.0
-      vscode-languageserver: 9.0.1
-
-  '@zenstackhq/language@3.9.4-beta.1':
-    dependencies:
-      '@zenstackhq/common-helpers': 3.9.4-beta.1
       langium: 4.2.4
       pluralize: 8.0.0
       ts-pattern: 5.9.0
@@ -2604,14 +2597,6 @@ snapshots:
     dependencies:
       '@zenstackhq/common-helpers': 3.9.3
       '@zenstackhq/language': 3.9.3
-      langium: 4.2.4
-      ts-pattern: 5.9.0
-      typescript: 6.0.3
-
-  '@zenstackhq/sdk@3.9.4-beta.1':
-    dependencies:
-      '@zenstackhq/common-helpers': 3.9.4-beta.1
-      '@zenstackhq/language': 3.9.4-beta.1
       langium: 4.2.4
       ts-pattern: 5.9.0
       typescript: 6.0.3

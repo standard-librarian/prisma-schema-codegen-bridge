@@ -4,7 +4,7 @@
 //
 // NOTE ON CONFIDENCE: the ZenStack AST/plugin API used below (CliPlugin,
 // ModelUtils, DataField shapes) was verified against the installed
-// @zenstackhq/sdk@3.9.4-beta.1 / @zenstackhq/language@3.9.4-beta.1 type
+// @zenstackhq/sdk@3.9.3 / @zenstackhq/language@3.9.3 type
 // declarations, and the jazz-tools output (co.map/co.list/z.*, `.optional()`
 // chaining) has been round-trip verified: `examples/pos-inventory-demo`
 // runs this plugin via the real `zen` CLI and the resulting
@@ -26,6 +26,7 @@ const SCALAR_TO_ZOD: Record<string, string> = {
   Decimal: 'z.number() /* TODO: precision loss, no jazz-tools decimal primitive confirmed yet */',
   Bytes: 'z.string() /* TODO: no jazz-tools bytes primitive confirmed yet */',
   Json: 'z.unknown()',
+  Unsupported: 'z.unknown() /* unsupported database-native type */',
 };
 
 function enumValuesConstName(enumName: string): string {

@@ -1,43 +1,77 @@
-# packages/cli (`schema-codegen-bridge`)
+# schema-codegen-bridge
 
-`schema-codegen-bridge generate` -- a thin wrapper around ZenStack's own
-`zen generate`, not a replacement for it. It can't be more than a wrapper:
-the three plugin blocks (`plugin-jazz-schema`, `plugin-ts-rest-contract`,
-`plugin-betterauth-claims`) have to be declared directly in a consumer's
-own `.zmodel` for ZenStack to register their custom attributes and options
-— there's no way for an external CLI to inject that invisibly. See root
-`PLAN.md` M6 and `../../docs/plugin-api-notes.md` for why.
+[![npm](https://img.shields.io/npm/v/schema-codegen-bridge.svg)](https://www.npmjs.com/package/schema-codegen-bridge)
+[![CI](https://github.com/standard-librarian/prisma-schema-codegen-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/standard-librarian/prisma-schema-codegen-bridge/actions/workflows/ci.yml)
 
-What it adds over calling `zen generate` yourself:
+A focused wrapper around `zen generate` for the Prisma Schema Codegen Bridge
+suite. It finds the same schema locations as ZenStack, verifies that all three
+generator blocks are configured, then runs the installed ZenStack CLI directly.
 
-- Resolves the schema path (defaults to `zenstack/schema.zmodel`, same
-  convention as `zen` itself; override with `--schema <path>`).
-- Checks all three plugin blocks are present in the schema and, if not,
-  fails with the specific missing block(s) and a copy-pasteable snippet —
-  instead of a consumer discovering the problem later via a confusing
-  `@@tsRestContract` resolution error or a silently-absent generated file.
-- Then forwards to the real `zen generate`.
+![Schema Codegen Bridge architecture](https://raw.githubusercontent.com/standard-librarian/prisma-schema-codegen-bridge/main/docs/architecture.svg)
 
-Verified: `examples/pos-inventory-demo` depends on this package (as
-`schema-codegen-bridge`, via `workspace:*`) and runs it for real through
-`pnpm run generate:cli` — genuine bin-linking through pnpm, not just
-invoking `bin.ts` directly by path. The missing-plugin-block error path was
-also tested against a deliberately incomplete copy of the schema.
+## Install
 
-Depends on `@zenstackhq/cli` directly so that installing just
-`schema-codegen-bridge` is enough to get `zen` too, rather than requiring
-consumers to separately add `@zenstackhq/cli` themselves.
+```bash
+npm install --save-dev schema-codegen-bridge \
+  @mdht/plugin-jazz-schema \
+  @mdht/plugin-ts-rest-contract \
+  @mdht/plugin-betterauth-claims
+```
 
-**Unlike every other package here, this one ships a build step.**
-`bin.ts` is compiled to `dist/bin.js` (`npm run build`, wired to
-`prepublishOnly`) rather than published as raw TypeScript. That's not
-stylistic: Node's own module loader refuses to type-strip anything located
-under `node_modules`, with no flag to override it, and a `bin` entry is
-exactly the kind of file Node loads directly rather than through ZenStack's
-`jiti`-based plugin loader (which has no such restriction, which is why
-the three plugin packages are fine shipping raw `.ts`). Published `0.1.0`
-without the build step and it crashed on a real `npx` with
-`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`; `0.1.1` fixed it, verified
-with a fresh `npm install` + `npx schema-codegen-bridge generate` against
-nothing but the published registry packages. See root
-`docs/plugin-api-notes.md` for the full account.
+`@zenstackhq/cli` is included, so a separate CLI install is not required.
+
+## Configure
+
+Add all three blocks to your `.zmodel` file:
+
+```zmodel
+plugin jazz {
+    provider = '@mdht/plugin-jazz-schema'
+    output = '../generated/jazz-schema.ts'
+}
+
+plugin tsRestContract {
+    provider = '@mdht/plugin-ts-rest-contract'
+    output = '../generated/ts-rest-contract.ts'
+}
+
+plugin betterauthClaims {
+    provider = '@mdht/plugin-betterauth-claims'
+    output = '../generated/betterauth-claims.ts'
+}
+```
+
+## Run
+
+```bash
+npx schema-codegen-bridge generate
+```
+
+Schema discovery follows this order:
+
+1. `zenstack.schema` in the nearest `package.json`
+2. `schema.zmodel`
+3. `zenstack/schema.zmodel`
+
+Override it or forward additional ZenStack flags when needed:
+
+```bash
+npx schema-codegen-bridge generate --schema ./db/app.zmodel
+npx schema-codegen-bridge generate -- --silent
+```
+
+The wrapper never downloads a second CLI through `npx`; it executes its declared
+`@zenstackhq/cli` dependency. Missing blocks produce copy-pasteable configuration
+instead of a later unresolved attribute or missing output.
+
+## Requirements
+
+- Node.js 22.6 or newer
+- The runtime dependencies required by each generated artifact
+
+For package-specific setup and a complete example, see the
+[project documentation](https://github.com/standard-librarian/prisma-schema-codegen-bridge#readme).
+
+## License
+
+MIT

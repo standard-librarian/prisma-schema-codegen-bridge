@@ -45,7 +45,8 @@ interface CliPlugin {
 }
 ```
 
-Confirmed against the installed `@zenstackhq/sdk@3.9.4-beta.1` type
+Originally confirmed against `@zenstackhq/sdk@3.9.4-beta.1` and reverified on
+the stable `@zenstackhq/sdk@3.9.3` type
 declarations (`dist/index.d.mts`), not just docs prose.
 
 ## The AST shapes that actually matter for codegen
@@ -237,7 +238,7 @@ style, that fails to compile if violated) and a runtime form
 generated file's `Role` values were deliberately mutated
 (`'MANAGER'` -> `'OWNER'`) and both the `tsc` run and `node verify-shape.ts`
 failed with a specific, correct diagnostic before the file was restored.
-`npm run verify` in the example runs the whole loop (regenerate, type-check,
+`pnpm run verify` in the example runs the whole loop (regenerate, type-check,
 assert) in one command.
 
 ## M6 result: npm-package-name provider resolution confirmed, plus a thin CLI
@@ -345,8 +346,8 @@ earlier testing because pnpm workspace symlinks resolve to a real path
 `pos-offline-reconciliation` only exercised the three ZenStack *plugins*
 (loaded via `jiti`, which has no such restriction) -- never this package's
 `bin.ts`, which Node loads directly. **Fixed** by giving `packages/cli` an
-actual build step (`tsc` -> `dist/bin.js`, `prepublishOnly` wired to run
-it) and republishing as `0.1.1` -- verified with a real `npm install` +
+actual build step (`tsc` -> `dist/bin.js`, now wired through `prepare`) and
+republishing as `0.1.1` -- verified with a real `npm install` +
 `npx schema-codegen-bridge generate` in a completely fresh scratch
 directory (no workspace, no vendoring, nothing but the published
 registry packages) before calling it done.
@@ -358,8 +359,9 @@ a userland transpiler (`jiti`, `tsx`, etc.), not Node's own module loader.**
 
 ## Open items this spike surfaced (update PLAN.md's "Open questions" too)
 
-- `DataFieldType.unsupported` (raw DB-native types) isn't handled by the IR
-  yet — out of scope for the demo schema, but a real schema will hit it.
+- `DataFieldType.unsupported` (raw DB-native types) is preserved explicitly by
+  the IR and mapped to conservative unknown validators; richer native-type
+  handling remains open.
 - `BigInt`/`Decimal`/`Bytes` are mapped to lossy `z.number()`/`z.string()`
   approximations in `plugin-jazz-schema` (flagged inline with `TODO`
   comments in the generated output) — jazz-tools doesn't appear to have
@@ -370,7 +372,7 @@ a userland transpiler (`jiti`, `tsx`, etc.), not Node's own module loader.**
   (`@db.Text()`) that dotted names work too, so this was never actually a
   blocker.
 - Relation fields are entirely excluded from the ts-rest contract (only
-  their plain FK scalar, e.g. `orderId`, is included) — fine for a v0 CRUD
+  their plain FK scalar, e.g. `orderId`, is included) — fine for the current CRUD
   contract, but `pos-offline-reconciliation`'s settlement API will likely
   want at least shallow nested resources (e.g. an order's line items),
   which this generator doesn't attempt yet.
